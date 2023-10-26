@@ -8,13 +8,11 @@
 static int i = 0;
 
 int main(int argc, char* argv[]) {
-    const char* jsonTest = "{\"name\":\"John\", \"age\":30, \"car\":true}";
     const std::string indent = "    ";
 
     std::ifstream jsonFile(openFileDialog());
     std::string json((std::istreambuf_iterator<char>(jsonFile)),
         std::istreambuf_iterator<char>());
-    //std::cout << json;
 
     rapidjson::Document doc;
     doc.Parse(json.c_str());
@@ -24,7 +22,9 @@ int main(int argc, char* argv[]) {
             GetParseError_En(doc.GetParseError()));
         return -1;
     }
-    
-    std::cout << cpp;
+
+    CppGenerator generator;
+    std::cout << generator.json2Cpp(doc);
+
     return 0;
 }

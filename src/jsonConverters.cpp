@@ -31,8 +31,8 @@ std::string jsonTypeString(rapidjson::Value* jsonValue) {
 std::string CppGenerator::json2Cpp(rapidjson::Document& doc, std::string indent)
 {
 	auto* docObj = rapidjson::Pointer("").Get(doc);
-	ConvertJsonObject(docObj, "struct MyStruct", indent, 0);
-	std::string cpp;
+	AddJsonObjectToSL(docObj, "struct MyStruct");
+	std::string cpp = GenerateCpp();
 	return cpp;
 }
 
@@ -51,20 +51,42 @@ std::string CppGenerator::jsonMemberToString(rapidjson::Value* jsonValue, std::s
 	return typeString + " " + memberName + ";\n";
 }
 
-void CppGenerator::ConvertJsonObject(rapidjson::Value* jsonValue, std::string className) {
+std::string CppGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue) { //Returns objects SStruct ID
 	SStruct sstruct;
 
-	sstruct.name = className;
+	sstruct.name = "MyClass";
 	for (auto& member : jsonValue->GetObject())
 	{
-		sstruct.members.emplace_back(jsonMemberToString(&member.value, member.name.GetString()));
+		std::string typeString;
+		if (jsonValue->IsArray()) {
+			//return jsonTypeString(&jsonValue[0]) + "[] " + memberName;
+		}
+		else if (jsonValue->IsObject()) {
+			typeString = "object"; //TODO: "nested objects"
+		}
+		else {
+			typeString = jsonTypeString(jsonValue);
+		}
+
+		sstruct.members.emplace_back(typeString + " " + member.name.GetString() + ";\n");
 	}
 
-	std::string preimage;
+	std::string hashValue;
 	for (auto& i : sstruct.members)
 	{
-		preimage += i;
+		hashValue += i;
+	}
+	size_t hash = stringHash(hashValue);
+
+	if (structureList.find(hash) != structureList.end()) {
+		classCount++;
+		structureList.insert({ hash, sstruct });
 	}
 
-	structureList.insert({stringHash(preimage), sstruct});
+	return sstruct.name;
+}
+
+std::string CppGenerator::GenerateCpp()
+{
+	return std::string();
 }
