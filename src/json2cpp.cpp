@@ -24,9 +24,7 @@ int main(int argc, char* argv[]) {
             GetParseError_En(doc.GetParseError()));
         return -1;
     }
-    auto* docObj = rapidjson::Pointer("").Get(doc);
-
-    std::string cpp = JsonObjectToCppObject(docObj, "struct MyStruct", indent, 0);
+    
     std::cout << cpp;
     return 0;
 }

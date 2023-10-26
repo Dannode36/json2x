@@ -25,36 +25,46 @@ std::string jsonTypeString(rapidjson::Value* jsonValue) {
 	else if (jsonValue->IsBool()) {
 		return "bool";
 	}
-	return "object";
+	return "typeError";
 }
 
-std::string JsonMemberToMember(rapidjson::Value* jsonValue, std::string memberName) {
+std::string CppGenerator::json2Cpp(rapidjson::Document& doc, std::string indent)
+{
+	auto* docObj = rapidjson::Pointer("").Get(doc);
+	ConvertJsonObject(docObj, "struct MyStruct", indent, 0);
+	std::string cpp;
+	return cpp;
+}
+
+std::string CppGenerator::jsonMemberToString(rapidjson::Value* jsonValue, std::string memberName) { //Is this function even neccesary?
+	std::string typeString;
 	if (jsonValue->IsArray()) {
-		return jsonTypeString(&jsonValue[0]) + "[] " + memberName + ";";
+		return jsonTypeString(&jsonValue[0]) + "[] " + memberName;
 	}
-	//else if (jsonValue->IsObject()) {
-	//	//TODO: object variables //JsonObjectToCppObject(jsonValue, );
-	//}
+	else if (jsonValue->IsObject()) {
+		typeString = "object"; //TODO: "nested objects"
+	}
 	else {
-		return jsonTypeString(jsonValue) + " " + memberName + ";";
+		typeString = jsonTypeString(jsonValue);
 	}
+
+	return typeString + " " + memberName + ";\n";
 }
 
-std::string JsonObjectToCppObject(rapidjson::Value* jsonValue, std::string className, const std::string& indent, int indentLevel) {
-	std::string cppString;
-	for (size_t i = 0; i < indentLevel; i++) { cppString += indent; }
-	cppString += className + " {\n";
+void CppGenerator::ConvertJsonObject(rapidjson::Value* jsonValue, std::string className) {
+	SStruct sstruct;
 
-	indentLevel += 1;
+	sstruct.name = className;
 	for (auto& member : jsonValue->GetObject())
 	{
-		for (size_t i = 0; i < indentLevel; i++) { cppString += indent; }
-		cppString += JsonMemberToMember(&member.value, member.name.GetString()) + "\n";
+		sstruct.members.emplace_back(jsonMemberToString(&member.value, member.name.GetString()));
 	}
-	indentLevel -= 1;
 
-	for (size_t i = 0; i < indentLevel; i++) { cppString += indent; }
-	cppString += "};\n";
+	std::string preimage;
+	for (auto& i : sstruct.members)
+	{
+		preimage += i;
+	}
 
-	return cppString;
+	structureList.insert({stringHash(preimage), sstruct});
 }
