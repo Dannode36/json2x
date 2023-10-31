@@ -1,7 +1,33 @@
 #include "jsonConverters.h"
+#include <iostream>
 
-std::string jsonTypeString(rapidjson::Value* jsonValue) {
-	if (jsonValue->IsInt()) {
+#define MAX_DEPTH 1000
+
+std::string CppGenerator::getCType(rapidjson::Value* jsonValue, int& depth) {
+	if (depth > MAX_DEPTH) {
+		return "typeDeductStackOverflow";
+	}
+	/*if (jsonValue == nullptr) {
+		return "null";
+	}
+	static int callCount;
+	callCount++;*/
+	//void* g[];
+	int arr[20]{};
+
+	if (jsonValue->IsArray()) {
+		if (jsonValue->Size() > 0) {
+			return getCType(&jsonValue->GetArray()[0], ++depth) + "[" + std::to_string(jsonValue->Size()) + "]";
+			--depth;
+		}
+		else {
+			return "emptyArray";
+		}
+	}
+	else if (jsonValue->IsObject()) {
+		return AddJsonObjectToSL(jsonValue, ++depth);
+	}
+	else if (jsonValue->IsInt()) {
 		return "int";
 	}
 	else if (jsonValue->IsFloat()) {
@@ -31,62 +57,47 @@ std::string jsonTypeString(rapidjson::Value* jsonValue) {
 std::string CppGenerator::json2Cpp(rapidjson::Document& doc, std::string indent)
 {
 	auto* docObj = rapidjson::Pointer("").Get(doc);
-	AddJsonObjectToSL(docObj, "struct MyStruct");
-	std::string cpp = GenerateCpp();
-	return cpp;
+	int depth = 0;
+	AddJsonObjectToSL(docObj, depth);
+	return GenerateCpp();
 }
 
-std::string CppGenerator::jsonMemberToString(rapidjson::Value* jsonValue, std::string memberName) { //Is this function even neccesary?
-	std::string typeString;
-	if (jsonValue->IsArray()) {
-		return jsonTypeString(&jsonValue[0]) + "[] " + memberName;
+std::string CppGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& depth) { //Returns objects SStruct ID
+	if (depth > MAX_DEPTH) {
+		return "objectDeductStackOverflow";
 	}
-	else if (jsonValue->IsObject()) {
-		typeString = "object"; //TODO: "nested objects"
-	}
-	else {
-		typeString = jsonTypeString(jsonValue);
-	}
-
-	return typeString + " " + memberName + ";\n";
-}
-
-std::string CppGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue) { //Returns objects SStruct ID
 	SStruct sstruct;
+	sstruct.name = "MyClass" + std::to_string(classCount++);
 
-	sstruct.name = "MyClass";
 	for (auto& member : jsonValue->GetObject())
 	{
-		std::string typeString;
-		if (jsonValue->IsArray()) {
-			//return jsonTypeString(&jsonValue[0]) + "[] " + memberName;
-		}
-		else if (jsonValue->IsObject()) {
-			typeString = "object"; //TODO: "nested objects"
-		}
-		else {
-			typeString = jsonTypeString(jsonValue);
-		}
-
-		sstruct.members.emplace_back(typeString + " " + member.name.GetString() + ";\n");
+		std::string typeString = getCType(&member.value, ++depth);
+		depth--;
+		sstruct.members.emplace_back(typeString + " " + member.name.GetString());
 	}
 
-	std::string hashValue;
-	for (auto& i : sstruct.members)
-	{
-		hashValue += i;
-	}
-	size_t hash = stringHash(hashValue);
-
-	if (structureList.find(hash) != structureList.end()) {
-		classCount++;
-		structureList.insert({ hash, sstruct });
-	}
-
+	structureList.push_back(sstruct);
+	depth--;
 	return sstruct.name;
 }
 
-std::string CppGenerator::GenerateCpp()
-{
-	return std::string();
+std::string SStructToText(SStruct& sstruct) {
+	std::string classText = "class " + sstruct.name + "{\n";
+	for (auto& member : sstruct.members)
+	{
+		classText += "    " + member + ";\n";
+	}
+	classText += "}\n";
+	return classText;
+}
+
+std::string CppGenerator::GenerateCpp() {
+	std::string text;
+
+	for (auto& sstruct : structureList)
+	{
+		text += SStructToText(sstruct);
+	}
+
+	return text;
 }

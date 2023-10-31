@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
     }
 
     CppGenerator generator;
-    std::cout << generator.json2Cpp(doc);
+    std::cout << generator.json2Cpp(doc, indent);
 
     return 0;
 }

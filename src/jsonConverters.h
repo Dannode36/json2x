@@ -16,9 +16,10 @@ public:
 private:
 	int classCount{};
 	std::hash<std::string> stringHash{};
-	std::map<size_t, SStruct> structureList{}; //SStruct ID (hash) mapped to itself
-	std::string AddJsonObjectToSL(rapidjson::Value* jsonValue);
+	std::vector<SStruct> structureList{}; //SStruct ID (hash) mapped to itself
 
-	std::string jsonMemberToString(rapidjson::Value* jsonValue, std::string memberName);
+	std::string AddJsonObjectToSL(rapidjson::Value* jsonValue, int& depth);
+	std::string getCType(rapidjson::Value* jsonValue, int& depth);
+
 	std::string GenerateCpp();
 };
