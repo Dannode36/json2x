@@ -32,5 +32,11 @@
     <ClInclude Include="src\win32Dialogs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="outputTest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ShadowEditor\output.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

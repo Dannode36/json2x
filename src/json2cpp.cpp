@@ -24,7 +24,11 @@ int main(int argc, char* argv[]) {
     }
 
     CppGenerator generator;
-    std::cout << generator.json2Cpp(doc, indent);
+    std::string outputText = generator.json2Cpp(doc, indent);
+
+    std::ofstream outFile("C:/Users/craft/Documents/GitHub/json2cpp/output.h");
+    outFile << outputText;
+    outFile.close();
 
     return 0;
 }

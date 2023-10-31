@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
-#include <map>
 #include <vector>
+#include <map>
 #include <functional>
 #include "rapidjson/pointer.h"
 
@@ -17,6 +17,7 @@ private:
 	int classCount{};
 	std::hash<std::string> stringHash{};
 	std::vector<SStruct> structureList{}; //SStruct ID (hash) mapped to itself
+	std::map<size_t, std::string> hashSet{}; //SStruct ID (hash) mapped to itself
 
 	std::string AddJsonObjectToSL(rapidjson::Value* jsonValue, int& depth);
 	std::string getCType(rapidjson::Value* jsonValue, int& depth);

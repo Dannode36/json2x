@@ -17,11 +17,11 @@ std::string CppGenerator::getCType(rapidjson::Value* jsonValue, int& depth) {
 
 	if (jsonValue->IsArray()) {
 		if (jsonValue->Size() > 0) {
-			return getCType(&jsonValue->GetArray()[0], ++depth) + "[" + std::to_string(jsonValue->Size()) + "]";
+			return getCType(&jsonValue->GetArray()[0], ++depth);
 			--depth;
 		}
 		else {
-			return "emptyArray";
+			return "void*";
 		}
 	}
 	else if (jsonValue->IsObject()) {
@@ -67,32 +67,52 @@ std::string CppGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& de
 		return "objectDeductStackOverflow";
 	}
 	SStruct sstruct;
-	sstruct.name = "MyClass" + std::to_string(classCount++);
 
 	for (auto& member : jsonValue->GetObject())
 	{
 		std::string typeString = getCType(&member.value, ++depth);
 		depth--;
-		sstruct.members.emplace_back(typeString + " " + member.name.GetString());
+		if (member.value.IsArray()) {
+			sstruct.members.emplace_back("std::vector<" + typeString + "> " + member.name.GetString());
+		}
+		else {
+			sstruct.members.emplace_back(typeString + " " + member.name.GetString());
+		}
 	}
 
-	structureList.push_back(sstruct);
-	depth--;
-	return sstruct.name;
+	std::string hashValue;
+	for (auto& i : sstruct.members)
+	{
+		hashValue += i;
+	}
+	size_t hash = stringHash(hashValue);
+
+	if (hashSet.find(hash) == hashSet.end()) {
+		sstruct.name = "MyClass" + std::to_string(classCount++);
+		structureList.push_back(sstruct);
+		hashSet.insert({ hash, sstruct.name});
+
+		depth--;
+		return sstruct.name;
+	}
+	else {
+		depth--;
+		return hashSet[hash];
+	}
 }
 
 std::string SStructToText(SStruct& sstruct) {
-	std::string classText = "class " + sstruct.name + "{\n";
+	std::string classText = "struct " + sstruct.name + "{\n";
 	for (auto& member : sstruct.members)
 	{
 		classText += "    " + member + ";\n";
 	}
-	classText += "}\n";
+	classText += "};\n";
 	return classText;
 }
 
 std::string CppGenerator::GenerateCpp() {
-	std::string text;
+	std::string text = "#include <string>\n#include <vector>\n\n";
 
 	for (auto& sstruct : structureList)
 	{

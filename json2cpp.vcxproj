@@ -136,6 +136,8 @@
     <ClCompile Include="src\win32Dialogs.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\ShadowEditor\output.h" />
+    <ClInclude Include="outputTest.h" />
     <ClInclude Include="src\jsonConverters.h" />
     <ClInclude Include="src\win32Dialogs.h" />
   </ItemGroup>
