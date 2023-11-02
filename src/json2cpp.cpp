@@ -5,8 +5,6 @@
 #include "jsonConverters.h"
 #include "win32Dialogs.h"
 
-static int i = 0;
-
 int main(int argc, char* argv[]) {
     const std::string indent = "    ";
 
@@ -23,12 +21,11 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    CppGenerator generator;
+    CppGenerator generator(indent);
     std::string outputText = generator.json2Cpp(doc, indent);
 
-    std::ofstream outFile("C:/Users/craft/Documents/GitHub/json2cpp/output.h");
+    std::ofstream outFile("output.h");
     outFile << outputText;
-    outFile.close();
 
     return 0;
 }

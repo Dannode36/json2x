@@ -1,19 +1,22 @@
 #include "jsonConverters.h"
 #include <iostream>
 
-#define MAX_DEPTH 1000
+#define MAX_DEPTH 1
+
+CppGenerator::CppGenerator(const std::string& indent)
+{
+	this->indent = indent;
+	this->classCount = 0;
+	this->stringHash = std::hash<std::string>();
+	this->structureList = std::vector<SStruct>();
+	this->hashSet = std::map<size_t, std::string>();
+}
 
 std::string CppGenerator::getCType(rapidjson::Value* jsonValue, int& depth) {
 	if (depth > MAX_DEPTH) {
+		printf_s("ERROR: Maximum search depth (%d) was reached while deducting a type\n", MAX_DEPTH);
 		return "typeDeductStackOverflow";
 	}
-	/*if (jsonValue == nullptr) {
-		return "null";
-	}
-	static int callCount;
-	callCount++;*/
-	//void* g[];
-	int arr[20]{};
 
 	if (jsonValue->IsArray()) {
 		if (jsonValue->Size() > 0) {
@@ -72,12 +75,12 @@ std::string CppGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& de
 	{
 		std::string typeString = getCType(&member.value, ++depth);
 		depth--;
+
 		if (member.value.IsArray()) {
-			sstruct.members.emplace_back("std::vector<" + typeString + "> " + member.name.GetString());
+			typeString = "std::vector<" + typeString + ">";
 		}
-		else {
-			sstruct.members.emplace_back(typeString + " " + member.name.GetString());
-		}
+
+		sstruct.members.emplace_back(typeString + " " + member.name.GetString());
 	}
 
 	std::string hashValue;
