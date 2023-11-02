@@ -10,17 +10,18 @@ struct SStruct {
 	std::vector<std::string> members;
 };
 
+
 class CppGenerator {
 public:
-	CppGenerator(const std::string& indent);
-	std::string json2Cpp(rapidjson::Document& doc, std::string indent);
+	CppGenerator(const std::string indent);
+	std::string json2Cpp(rapidjson::Document& doc);
 private:
 	std::string indent;
 	int classCount;
 	std::hash<std::string> stringHash;
 
-	std::vector<SStruct> structureList; //SStruct ID (hash) mapped to itself
 	std::map<size_t, std::string> hashSet; //SStruct ID (hash) mapped to itself
+	std::vector<SStruct> structureList; //SStruct ID (hash) mapped to itself
 
 	std::string AddJsonObjectToSL(rapidjson::Value* jsonValue, int& depth);
 	std::string getCType(rapidjson::Value* jsonValue, int& depth);

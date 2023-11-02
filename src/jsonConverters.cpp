@@ -1,9 +1,10 @@
 #include "jsonConverters.h"
 #include <iostream>
 
-#define MAX_DEPTH 1
+#define MAX_DEPTH 512 //Arbitrary number
 
-CppGenerator::CppGenerator(const std::string& indent)
+//Public Functions
+CppGenerator::CppGenerator(const std::string indent)
 {
 	this->indent = indent;
 	this->classCount = 0;
@@ -12,6 +13,15 @@ CppGenerator::CppGenerator(const std::string& indent)
 	this->hashSet = std::map<size_t, std::string>();
 }
 
+std::string CppGenerator::json2Cpp(rapidjson::Document& doc)
+{
+	auto* docObj = rapidjson::Pointer("").Get(doc);
+	int depth = 0;
+	AddJsonObjectToSL(docObj, depth);
+	return GenerateCpp();
+}
+
+//Private Functions
 std::string CppGenerator::getCType(rapidjson::Value* jsonValue, int& depth) {
 	if (depth > MAX_DEPTH) {
 		printf_s("ERROR: Maximum search depth (%d) was reached while deducting a type\n", MAX_DEPTH);
@@ -57,20 +67,19 @@ std::string CppGenerator::getCType(rapidjson::Value* jsonValue, int& depth) {
 	return "typeError";
 }
 
-std::string CppGenerator::json2Cpp(rapidjson::Document& doc, std::string indent)
-{
-	auto* docObj = rapidjson::Pointer("").Get(doc);
-	int depth = 0;
-	AddJsonObjectToSL(docObj, depth);
-	return GenerateCpp();
-}
-
-std::string CppGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& depth) { //Returns objects SStruct ID
+/// <summary>
+/// Creates a new SStruct by recursively searching the jsonValue's members and
+/// adds it to the structure list
+/// </summary>
+/// <param name="jsonValue"></param>
+/// <param name="depth"></param>
+/// <returns>Name of the created or an identical SStruct</returns>
+std::string CppGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& depth) {
 	if (depth > MAX_DEPTH) {
 		return "objectDeductStackOverflow";
 	}
-	SStruct sstruct;
 
+	SStruct sstruct;
 	for (auto& member : jsonValue->GetObject())
 	{
 		std::string typeString = getCType(&member.value, ++depth);
@@ -88,9 +97,10 @@ std::string CppGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& de
 	{
 		hashValue += i;
 	}
-	size_t hash = stringHash(hashValue);
 
+	size_t hash = stringHash(hashValue);
 	if (hashSet.find(hash) == hashSet.end()) {
+		//SStruct hash does not exist. Increment class counter and add new hash
 		sstruct.name = "MyClass" + std::to_string(classCount++);
 		structureList.push_back(sstruct);
 		hashSet.insert({ hash, sstruct.name});
@@ -99,6 +109,7 @@ std::string CppGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& de
 		return sstruct.name;
 	}
 	else {
+		//SStruct with same hash alread exist so "become it" and return its name
 		depth--;
 		return hashSet[hash];
 	}
