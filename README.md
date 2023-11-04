@@ -1,2 +1,6 @@
-# json2cpp
- Convert any JSON structure into a C++ header file with struct declarations
+# json2x
+ Convert any JSON file into class declarations  of a wide range of languages.
+
+ ## Supported Languages
+ - C++
+ - C#
