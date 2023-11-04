@@ -14,9 +14,11 @@ struct SStruct {
 class CppGenerator {
 public:
 	CppGenerator(const std::string indent);
-	std::string json2Cpp(rapidjson::Document& doc);
+	std::string json2cpp(std::string& json);
 private:
 	std::string indent;
+	bool usingStrings;
+	bool usingVectors;
 	int classCount;
 	std::hash<std::string> stringHash;
 

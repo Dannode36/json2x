@@ -21,7 +21,7 @@
     <ClCompile Include="src\jsonConverters.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\win32Dialogs.cpp">
+    <ClCompile Include="src\win32.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -29,13 +29,7 @@
     <ClInclude Include="src\jsonConverters.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\win32Dialogs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="outputTest.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ShadowEditor\output.h">
+    <ClInclude Include="src\win32.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
