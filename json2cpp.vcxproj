@@ -105,6 +105,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,13 +134,11 @@
   <ItemGroup>
     <ClCompile Include="src\jsonConverters.cpp" />
     <ClCompile Include="src\json2cpp.cpp" />
-    <ClCompile Include="src\win32Dialogs.cpp" />
+    <ClCompile Include="src\win32.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\ShadowEditor\output.h" />
-    <ClInclude Include="outputTest.h" />
     <ClInclude Include="src\jsonConverters.h" />
-    <ClInclude Include="src\win32Dialogs.h" />
+    <ClInclude Include="src\win32.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

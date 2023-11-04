@@ -1,34 +1,31 @@
-#include <iostream>
 #include <fstream>
-#include "rapidjson/fwd.h"
-#include "rapidjson/error/en.h"
+#include <filesystem>
+#include <iostream>
 #include "jsonConverters.h"
-#include "win32Dialogs.h"
-
-static int i = 0;
+#include "win32.h"
 
 int main(int argc, char* argv[]) {
     const std::string indent = "    ";
+    const std::wstring outFileName = L"/output.h";
 
+    //Using a windows dialog, get the path to a file for JSON document parsing
     std::ifstream jsonFile(openFileDialog());
+
+    //Read file contents into a string
     std::string json((std::istreambuf_iterator<char>(jsonFile)),
         std::istreambuf_iterator<char>());
 
-    rapidjson::Document doc;
-    doc.Parse(json.c_str());
-    if (doc.HasParseError()) {
-        fprintf(stderr, "\nError(offset %u): %s\n",
-            (unsigned)doc.GetErrorOffset(),
-            GetParseError_En(doc.GetParseError()));
-        return -1;
+    //Construct the code generation class with a specific indent style (4 spaces) used when generating code
+    CppGenerator generator(indent);
+
+    //Write generated c++ code to a header file if no parsing error occured
+    std::string cppCode = generator.json2cpp(json);
+    if (cppCode.empty()) { 
+        return -1; 
     }
-
-    CppGenerator generator;
-    std::string outputText = generator.json2Cpp(doc, indent);
-
-    std::ofstream outFile("C:/Users/craft/Documents/GitHub/json2cpp/output.h");
-    outFile << outputText;
-    outFile.close();
-
-    return 0;
+    else {
+        std::ofstream outFile(getWorkingDirectory() + outFileName);
+        outFile << cppCode;
+        return 0;
+    }
 }
