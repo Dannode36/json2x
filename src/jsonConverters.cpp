@@ -7,7 +7,7 @@
 
 #define MAX_DEPTH 512 //Arbitrary number
 
-//Nice string formatter (@iFreilicht)
+//Nice string formatter (Thanks to iFreilicht)
 template<typename ... Args>
 std::string string_format(const std::string& format, Args ... args)
 {
@@ -20,7 +20,7 @@ std::string string_format(const std::string& format, Args ... args)
 }
 
 //Public Functions
-CppGenerator::CppGenerator(const std::string indent)
+CodeGenerator::CodeGenerator(const std::string indent)
 {
     this->indent = indent;
     this->usingStrings = false;
@@ -36,10 +36,13 @@ CppGenerator::CppGenerator(const std::string indent)
 /// </summary>
 /// <param name="json">JSON string</param>
 /// <returns>C++ class declarations</returns>
-std::string CppGenerator::json2cpp(std::string& json)
+std::string CodeGenerator::convertJson(std::string& json, std::string language)
 {
     //Load language Format
-    if()
+    if (language == "cpp") { format = format_cpp; }
+    else if (language == "csharp") { format = format_csharp; }
+    else { return ""; }
+
     usingStrings = false;
     usingVectors = false;
     classCount = 0;
@@ -71,7 +74,7 @@ std::string CppGenerator::json2cpp(std::string& json)
 /// <param name="jsonValue"></param>
 /// <param name="depth"></param>
 /// <returns></returns>
-std::string CppGenerator::getCType(rapidjson::Value* jsonValue, int& depth) {
+std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int& depth) {
     if (depth > MAX_DEPTH) {
         printf_s("ERROR: Maximum search depth (%d) was reached while deducting a type\n", MAX_DEPTH);
         return "typeDeductStackOverflow";
@@ -80,40 +83,40 @@ std::string CppGenerator::getCType(rapidjson::Value* jsonValue, int& depth) {
     if (jsonValue->IsArray()) {
         usingVectors = true;
         if (jsonValue->Size() > 0) {
-            return getCType(&jsonValue->GetArray()[0], ++depth);
+            return getType(&jsonValue->GetArray()[0], ++depth);
             --depth;
         }
         else {
-            return "void*";
+            return format.null_t;
         }
     }
     else if (jsonValue->IsObject()) {
         return AddJsonObjectToSL(jsonValue, ++depth);
     }
     else if (jsonValue->IsInt()) {
-        return "int";
+        return format.int_t;
     }
     else if (jsonValue->IsFloat()) {
-        return "float";
+        return format.float_t;
     }
     else if (jsonValue->IsUint()) {
-        return "unsigned int";
+        return format.uint_t;
     }
     else if (jsonValue->IsInt64()) {
-        return "long long";
+        return format.ll_t;
     }
     else if (jsonValue->IsUint64()) {
-        return "unsigned long long";
+        return format.ull_t;
     }
     else if (jsonValue->IsDouble()) {
-        return "double";
+        return format.double_t;
     }
     else if (jsonValue->IsString()) {
         usingStrings = true;
-        return "std::string";
+        return format.string_t;
     }
     else if (jsonValue->IsBool()) {
-        return "bool";
+        return format.bool_t;
     }
     return "typeError";
 }
@@ -125,7 +128,7 @@ std::string CppGenerator::getCType(rapidjson::Value* jsonValue, int& depth) {
 /// <param name="jsonValue">Starting node convert into an SStruct</param>
 /// <param name="depth">Current recurse depth</param>
 /// <returns>Name of the created or an identical SStruct</returns>
-std::string CppGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& depth) {
+std::string CodeGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& depth) {
     if (depth > MAX_DEPTH) {
         return "objectDeductStackOverflow";
     }
@@ -133,14 +136,15 @@ std::string CppGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& de
     SStruct sstruct;
     for (auto& member : jsonValue->GetObject())
     {
-        std::string typeString = getCType(&member.value, ++depth);
+        std::string typeString = getType(&member.value, ++depth);
         depth--;
 
-        if (member.value.IsArray()) {
-            typeString = "std::vector<" + typeString + ">";
+        if (member.value.IsArray()) { //Modify type string to an array syntax
+            typeString = string_format(format.array_format, typeString);
         }
-
-        sstruct.members.emplace_back(typeString + " " + member.name.GetString());
+        //IMPORTANT: Do not mix std::string and const char* when formatting... it took 2 hours to find this
+        std::string memberText = string_format(format.var_format, typeString.c_str(), member.name.GetString());
+        sstruct.members.emplace_back(memberText);
     }
 
     std::string hashValue;
@@ -166,19 +170,20 @@ std::string CppGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& de
     }
 }
 
-std::string CppGenerator::GenerateCpp() {
+std::string CodeGenerator::GenerateCpp() {
     std::string text;
-    text += usingStrings ? "#include <string>\n" : "";
-    text += usingVectors ? "#include <vector>\n" : "";
+    text += usingVectors ? format.using_vector : "";
+    text += usingStrings ? format.using_string : "";
+    text += usingStrings || usingVectors ? "\n" : "";
 
     for (auto& sstruct : structureList)
     {
-        text += "struct " + sstruct.name + "{\n";
+        text += string_format(format.structS_format, sstruct.name);
         for (auto& member : sstruct.members)
         {
-            text += indent + member + ";\n";
+            text += indent + member + "\n";
         }
-        text += "};\n";
+        text += format.structE_format;
     }
 
     return text;

@@ -6,7 +6,7 @@
 
 int main(int argc, char* argv[]) {
     const std::string indent = "    ";
-    const std::wstring outFileName = L"/output.h";
+    const std::wstring outFileName = L"\\output.h";
 
     //Using a windows dialog, get the path to a file for JSON document parsing
     std::ifstream jsonFile(openFileDialog());
@@ -16,16 +16,18 @@ int main(int argc, char* argv[]) {
         std::istreambuf_iterator<char>());
 
     //Construct the code generation class with a specific indent style (4 spaces) used when generating code
-    CppGenerator generator(indent);
+    CodeGenerator generator(indent);
 
     //Write generated c++ code to a header file if no parsing error occured
-    std::string cppCode = generator.json2cpp(json);
-    if (cppCode.empty()) { 
+    std::string codeText = generator.convertJson(json, "cpp");
+    if (codeText.empty()) { //Error occured during JSON conversion/code generation
         return -1; 
     }
     else {
         std::ofstream outFile(getWorkingDirectory() + outFileName);
-        outFile << cppCode;
+        outFile << codeText;
+        std::cout << "Code generation successfull. Saved result to: ";
+        std::wcout << getWorkingDirectory() + outFileName << "\n";
         return 0;
     }
 }
