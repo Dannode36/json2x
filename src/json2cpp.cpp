@@ -9,7 +9,7 @@ int main(int argc, char* argv[]) {
     const std::string indent = "    ";
     const std::wstring outFileName = L"\\output";
 
-    std::string language("csharp");
+    std::string language(argv[2]);
     LangFormat format;
     //Check if language format is supported
     if (globalFormats.find(language) == globalFormats.end()) {
@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
     }
 
     //Using a windows dialog, get the path to a file for JSON document parsing
-    std::ifstream jsonFile(openFileDialog());
+    std::ifstream jsonFile(argv[1]);
 
     //Read file contents into a string
     std::string json((std::istreambuf_iterator<char>(jsonFile)),
