@@ -8,8 +8,17 @@ int main(int argc, char* argv[]) {
     const std::string className = "MyClass";
     const std::string indent = "    ";
     const std::wstring outFileName = L"\\output";
+
     std::string language("csharp");
     LangFormat format;
+    //Check if language format is supported
+    if (globalFormats.find(language) == globalFormats.end()) {
+        std::cout << "ERROR: \"" + language + "\" is not a supported language\n";
+        return -1;
+    }
+    else {
+        format = globalFormats.at(language);
+    }
 
     //Using a windows dialog, get the path to a file for JSON document parsing
     std::ifstream jsonFile(openFileDialog());
@@ -20,10 +29,6 @@ int main(int argc, char* argv[]) {
 
     //Construct the code generation class with a specific indent style (4 spaces) used when generating code
     CodeGenerator generator(indent, className);
-    if (language == "cpp") { format = format_cpp; }
-    else if (language == "csharp") { format = format_csharp; }
-    else if (language == "rust") { format = format_rust; }
-    else { return -1; }
 
     //Write generated c++ code to a header file if no parsing error occured
     std::string codeText = generator.convertJson(json, format);

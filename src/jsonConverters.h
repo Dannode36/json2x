@@ -15,11 +15,10 @@ struct SStruct {
 class CodeGenerator {
 public:
 	CodeGenerator(const std::string indent, const std::string className);
-	std::string convertJson(std::string& json, LangFormat& format);
+	std::string convertJson(std::string& json, const LangFormat& format);
 private:
 	const std::string className;
 	const std::string indent;
-
 	LangFormat format;
 	bool usingStrings;
 	bool usingVectors;

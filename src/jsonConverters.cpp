@@ -24,7 +24,7 @@ CodeGenerator::CodeGenerator(const std::string indent, const std::string classNa
 /// </summary>
 /// <param name="json">JSON string</param>
 /// <returns>C++ class declarations</returns>
-std::string CodeGenerator::convertJson(std::string& json, LangFormat& format) {
+std::string CodeGenerator::convertJson(std::string& json, const LangFormat& format) {
     this->format = format;
     usingStrings = false;
     usingVectors = false;
