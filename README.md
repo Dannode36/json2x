@@ -4,3 +4,7 @@
  ### Supported Languages
  - C++
  - C#
+
+### Libraries
+- [rapidjson](https://github.com/Tencent/rapidjson/)
+- [fmt](https://github.com/fmtlib/fmt)
