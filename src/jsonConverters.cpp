@@ -1,28 +1,16 @@
 #include <iostream>
-#include <memory>
 #include <string>
-#include <stdexcept>
 #include "jsonConverters.h"
 #include "rapidjson/error/en.h"
 
+#define FMT_HEADER_ONLY
+#include "fmt/format.h"
+
 #define MAX_DEPTH 512 //Arbitrary number
 
-//Nice string formatter (Thanks to iFreilicht)
-template<typename ... Args>
-std::string string_format(const std::string& format, Args ... args)
-{
-    int size_s = std::snprintf(nullptr, 0, format.c_str(), args ...) + 1; // Extra space for '\0'
-    if (size_s <= 0) { throw std::runtime_error("Error during formatting."); }
-    auto size = static_cast<size_t>(size_s);
-    std::unique_ptr<char[]> buf(new char[size]);
-    std::snprintf(buf.get(), size, format.c_str(), args ...);
-    return std::string(buf.get(), buf.get() + size - 1); // We don't want the '\0' inside
-}
-
 //Public Functions
-CodeGenerator::CodeGenerator(const std::string indent)
+CodeGenerator::CodeGenerator(const std::string indent, const std::string className) : indent(indent), className(className)
 {
-    this->indent = indent;
     this->usingStrings = false;
     this->usingVectors = false;
     this->classCount = 0;
@@ -36,13 +24,8 @@ CodeGenerator::CodeGenerator(const std::string indent)
 /// </summary>
 /// <param name="json">JSON string</param>
 /// <returns>C++ class declarations</returns>
-std::string CodeGenerator::convertJson(std::string& json, std::string language)
-{
-    //Load language Format
-    if (language == "cpp") { format = format_cpp; }
-    else if (language == "csharp") { format = format_csharp; }
-    else { return ""; }
-
+std::string CodeGenerator::convertJson(std::string& json, LangFormat& format) {
+    this->format = format;
     usingStrings = false;
     usingVectors = false;
     classCount = 0;
@@ -140,10 +123,10 @@ std::string CodeGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& d
         depth--;
 
         if (member.value.IsArray()) { //Modify type string to an array syntax
-            typeString = string_format(format.array_format, typeString);
+            typeString = fmt::format(format.array_format, typeString);
         }
         //IMPORTANT: Do not mix std::string and const char* when formatting... it took 2 hours to find this
-        std::string memberText = string_format(format.var_format, typeString.c_str(), member.name.GetString());
+        std::string memberText = fmt::format(format.var_format, typeString.c_str(), member.name.GetString());
         sstruct.members.emplace_back(memberText);
     }
 
@@ -156,7 +139,7 @@ std::string CodeGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& d
     size_t hash = stringHash(hashValue);
     if (hashSet.find(hash) == hashSet.end()) {
         //SStruct hash does not exist. Increment class counter and add new hash
-        sstruct.name = "MyClass" + std::to_string(classCount++);
+        sstruct.name = className + std::to_string(++classCount);
         structureList.push_back(sstruct);
         hashSet.insert({ hash, sstruct.name});
 
@@ -178,7 +161,7 @@ std::string CodeGenerator::GenerateCpp() {
 
     for (auto& sstruct : structureList)
     {
-        text += string_format(format.structS_format, sstruct.name);
+        text += fmt::format(format.structS_format, sstruct.name);
         for (auto& member : sstruct.members)
         {
             text += indent + member + "\n";

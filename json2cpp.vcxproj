@@ -140,6 +140,7 @@
     <ClInclude Include="src\LangFormat.h" />
     <ClInclude Include="src\jsonConverters.h" />
     <ClInclude Include="src\win32.h" />
+    <ClInclude Include="x64\Release\output.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

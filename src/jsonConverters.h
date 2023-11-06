@@ -14,10 +14,12 @@ struct SStruct {
 
 class CodeGenerator {
 public:
-	CodeGenerator(const std::string indent);
-	std::string convertJson(std::string& json, std::string language);
+	CodeGenerator(const std::string indent, const std::string className);
+	std::string convertJson(std::string& json, LangFormat& format);
 private:
-	std::string indent;
+	const std::string className;
+	const std::string indent;
+
 	LangFormat format;
 	bool usingStrings;
 	bool usingVectors;
