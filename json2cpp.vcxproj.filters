@@ -35,8 +35,5 @@
     <ClInclude Include="src\LangFormat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="x64\Release\output.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

@@ -36,7 +36,7 @@ std::string CodeGenerator::convertJson(std::string& json, const LangFormat& form
     rapidjson::Document doc;
     doc.Parse(json.c_str());
     if (doc.HasParseError()) {
-        fprintf(stderr, "\nError(offset %u): %s\n",
+        fprintf(stderr, "ERROR: (offset %u): %s\n",
             (unsigned)doc.GetErrorOffset(),
             GetParseError_En(doc.GetParseError()));
         return "";
