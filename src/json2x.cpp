@@ -24,24 +24,35 @@ int main(int argc, char* argv[]) {
     std::string language;
 
     signal(SIGINT, signal_callback);
-
     if (cli) {
         std::cout << "json2x " << VERSION_MAJOR << "." << VERSION_MINOR << "\n";
     }
 
     do {
         if (cli) {
+            filePath.clear();
+            language.clear();
+
             std::cout << ">> ";
-            std::cin >> filePath;
-            std::cin >> language;
-            std::cout << "\n";
+            std::string tempInput;
+            std::getline(std::cin >> std::ws, tempInput); //Text input is actual f!#ked in C++
+
+            std::stringstream ss(tempInput);
+            std::getline(ss, filePath, ' ');
+            std::getline(ss, language, ' ');
+
+            if (filePath == "exit") {
+                exit(1);
+            }
+
             if (filePath.empty() || language.empty()) {
-                std::cerr << ">> ERROR: Incorrect Syntax. Syntax is \"json2x <file-path> <language>\"\n";
+                std::cerr << "ERROR: Correct syntax is \"json2x <file-path> <language>\"\n";
+                continue;
             }
         }
         else { //Not in CLI mode
             if (argc < 3) {
-                std::cerr << "ERROR: Incorrect Syntax. Syntax is \"json2x <file-path> <language>\"\n";
+                std::cerr << "ERROR: Correct syntax is \"json2x <file-path> <language>\"\n";
                 continue;
             }
             else {
@@ -52,35 +63,34 @@ int main(int argc, char* argv[]) {
 
         //Check if language format is supported
         if (globalFormats.find(language) == globalFormats.end()) {
-            std::cerr << ">> " << "ERROR: \"" + language + "\" is not a supported language\n";
+            std::cerr << "ERROR: \"" + language + "\" is not a supported language\n";
             continue;
         }
         else {
             format = globalFormats.at(language);
         }
 
-        //Using a windows dialog, get the path to a file for JSON document parsing
+        //Load JSON file
         std::ifstream jsonFile(filePath);
 
         //Read file contents into a string
         std::string json((std::istreambuf_iterator<char>(jsonFile)),
             std::istreambuf_iterator<char>());
 
-        //Construct the code generation class with a specific indent style (4 spaces) used when generating code
+        //Construct a code generator object with an indent style (4 spaces) and an initial class name ("MyClass")
         CodeGenerator generator(indent, className);
 
         //Write generated c++ code to a header file if no parsing error occured
         std::string codeText = generator.convertJson(json, format);
         if (codeText.empty()) { //Error occured during JSON conversion/code generation
-            std::cerr << ">> ERROR: An error occured while converting the JSON (convertJson() returned an empty string) :(\n";
+            std::cerr << "ERROR: An error occured while converting the JSON (convertJson() returned an empty string) :(\n";
             continue;
         }
         else {
             std::ofstream outFile(getWorkingDirectory() + outFileName + format.file_extension);
             outFile << codeText;
-            std::cout << ">> " << "Code generation successfull. Saved result to: ";
+            std::cout << "Code generation successfull. Saved result to: ";
             std::wcout << getWorkingDirectory() + outFileName << format.file_extension << "\n";
-            continue;
         }
 
     } while (cli);

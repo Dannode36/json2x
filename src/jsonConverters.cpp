@@ -15,7 +15,7 @@ CodeGenerator::CodeGenerator(const std::string indent, const std::string classNa
     this->usingVectors = false;
     this->classCount = 0;
     this->stringHash = std::hash<std::string>();
-    this->structureList = std::vector<SStruct>();
+    this->structureList = std::vector<ObjectData>();
     this->hashSet = std::map<size_t, std::string>();
 }
 
@@ -105,18 +105,18 @@ std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int& depth) {
 }
 
 /// <summary>
-/// Creates a new SStruct by recursively searching the jsonValue's members and
+/// Creates a new ObjectData by recursively searching the jsonValue's members and
 /// adds it to the structure list
 /// </summary>
-/// <param name="jsonValue">Starting node convert into an SStruct</param>
+/// <param name="jsonValue">Starting node convert into an ObjectData</param>
 /// <param name="depth">Current recurse depth</param>
-/// <returns>Name of the created or an identical SStruct</returns>
+/// <returns>Name of the created or an identical ObjectData</returns>
 std::string CodeGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& depth) {
     if (depth > MAX_DEPTH) {
         return "objectDeductStackOverflow";
     }
 
-    SStruct sstruct;
+    ObjectData sstruct;
     for (auto& member : jsonValue->GetObject())
     {
         std::string typeString = getType(&member.value, ++depth);
@@ -138,7 +138,7 @@ std::string CodeGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& d
 
     size_t hash = stringHash(hashValue);
     if (hashSet.find(hash) == hashSet.end()) {
-        //SStruct hash does not exist. Increment class counter and add new hash
+        //ObjectData hash does not exist. Increment class counter and add new hash
         sstruct.name = className + std::to_string(++classCount);
         structureList.push_back(sstruct);
         hashSet.insert({ hash, sstruct.name});
@@ -147,7 +147,7 @@ std::string CodeGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& d
         return sstruct.name;
     }
     else {
-        //SStruct with same hash alread exist so "become it" and return its name
+        //ObjectData with same hash alread exist so "become it" and return its name
         depth--;
         return hashSet[hash];
     }
