@@ -4,6 +4,9 @@
  ### Supported Languages
  - C++
  - C#
+ - Rust
+ - Java
+ - Kotlin
 
 ### Libraries
 - [rapidjson](https://github.com/Tencent/rapidjson/)
