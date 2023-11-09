@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\json2cpp.cpp">
+    <ClCompile Include="src\json2x.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\jsonConverters.cpp">
@@ -30,6 +30,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\win32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\LangFormat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

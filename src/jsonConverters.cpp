@@ -1,18 +1,21 @@
 #include <iostream>
+#include <string>
 #include "jsonConverters.h"
 #include "rapidjson/error/en.h"
+
+#define FMT_HEADER_ONLY
+#include "fmt/format.h"
 
 #define MAX_DEPTH 512 //Arbitrary number
 
 //Public Functions
-CppGenerator::CppGenerator(const std::string indent)
+CodeGenerator::CodeGenerator(const std::string indent, const std::string className) : indent(indent), className(className)
 {
-    this->indent = indent;
     this->usingStrings = false;
     this->usingVectors = false;
     this->classCount = 0;
     this->stringHash = std::hash<std::string>();
-    this->structureList = std::vector<SStruct>();
+    this->structureList = std::vector<ObjectData>();
     this->hashSet = std::map<size_t, std::string>();
 }
 
@@ -21,8 +24,8 @@ CppGenerator::CppGenerator(const std::string indent)
 /// </summary>
 /// <param name="json">JSON string</param>
 /// <returns>C++ class declarations</returns>
-std::string CppGenerator::json2cpp(std::string& json)
-{
+std::string CodeGenerator::convertJson(std::string& json, const LangFormat& format) {
+    this->format = format;
     usingStrings = false;
     usingVectors = false;
     classCount = 0;
@@ -33,7 +36,7 @@ std::string CppGenerator::json2cpp(std::string& json)
     rapidjson::Document doc;
     doc.Parse(json.c_str());
     if (doc.HasParseError()) {
-        fprintf(stderr, "\nError(offset %u): %s\n",
+        fprintf(stderr, "ERROR: (offset %u): %s\n",
             (unsigned)doc.GetErrorOffset(),
             GetParseError_En(doc.GetParseError()));
         return "";
@@ -54,7 +57,7 @@ std::string CppGenerator::json2cpp(std::string& json)
 /// <param name="jsonValue"></param>
 /// <param name="depth"></param>
 /// <returns></returns>
-std::string CppGenerator::getCType(rapidjson::Value* jsonValue, int& depth) {
+std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int& depth) {
     if (depth > MAX_DEPTH) {
         printf_s("ERROR: Maximum search depth (%d) was reached while deducting a type\n", MAX_DEPTH);
         return "typeDeductStackOverflow";
@@ -63,67 +66,68 @@ std::string CppGenerator::getCType(rapidjson::Value* jsonValue, int& depth) {
     if (jsonValue->IsArray()) {
         usingVectors = true;
         if (jsonValue->Size() > 0) {
-            return getCType(&jsonValue->GetArray()[0], ++depth);
+            return getType(&jsonValue->GetArray()[0], ++depth);
             --depth;
         }
         else {
-            return "void*";
+            return format.null_t;
         }
     }
     else if (jsonValue->IsObject()) {
         return AddJsonObjectToSL(jsonValue, ++depth);
     }
     else if (jsonValue->IsInt()) {
-        return "int";
+        return format.int_t;
     }
     else if (jsonValue->IsFloat()) {
-        return "float";
+        return format.float_t;
     }
     else if (jsonValue->IsUint()) {
-        return "unsigned int";
+        return format.uint_t;
     }
     else if (jsonValue->IsInt64()) {
-        return "long long";
+        return format.ll_t;
     }
     else if (jsonValue->IsUint64()) {
-        return "unsigned long long";
+        return format.ull_t;
     }
     else if (jsonValue->IsDouble()) {
-        return "double";
+        return format.double_t;
     }
     else if (jsonValue->IsString()) {
         usingStrings = true;
-        return "std::string";
+        return format.string_t;
     }
     else if (jsonValue->IsBool()) {
-        return "bool";
+        return format.bool_t;
     }
     return "typeError";
 }
 
 /// <summary>
-/// Creates a new SStruct by recursively searching the jsonValue's members and
+/// Creates a new ObjectData by recursively searching the jsonValue's members and
 /// adds it to the structure list
 /// </summary>
-/// <param name="jsonValue">Starting node convert into an SStruct</param>
+/// <param name="jsonValue">Starting node convert into an ObjectData</param>
 /// <param name="depth">Current recurse depth</param>
-/// <returns>Name of the created or an identical SStruct</returns>
-std::string CppGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& depth) {
+/// <returns>Name of the created or an identical ObjectData</returns>
+std::string CodeGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& depth) {
     if (depth > MAX_DEPTH) {
         return "objectDeductStackOverflow";
     }
 
-    SStruct sstruct;
+    ObjectData sstruct;
     for (auto& member : jsonValue->GetObject())
     {
-        std::string typeString = getCType(&member.value, ++depth);
+        std::string typeString = getType(&member.value, ++depth);
         depth--;
 
-        if (member.value.IsArray()) {
-            typeString = "std::vector<" + typeString + ">";
+        if (member.value.IsArray()) { //Modify type string to an array syntax
+            typeString = fmt::format(format.array_format, typeString);
         }
-
-        sstruct.members.emplace_back(typeString + " " + member.name.GetString());
+        //IMPORTANT: Do not mix std::string and const char* when formatting... it took 2 hours to find this
+        std::string memberText = fmt::format(format.var_format, typeString.c_str(), member.name.GetString());
+        sstruct.members.emplace_back(memberText);
     }
 
     std::string hashValue;
@@ -134,8 +138,8 @@ std::string CppGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& de
 
     size_t hash = stringHash(hashValue);
     if (hashSet.find(hash) == hashSet.end()) {
-        //SStruct hash does not exist. Increment class counter and add new hash
-        sstruct.name = "MyClass" + std::to_string(classCount++);
+        //ObjectData hash does not exist. Increment class counter and add new hash
+        sstruct.name = className + std::to_string(++classCount);
         structureList.push_back(sstruct);
         hashSet.insert({ hash, sstruct.name});
 
@@ -143,25 +147,26 @@ std::string CppGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& de
         return sstruct.name;
     }
     else {
-        //SStruct with same hash alread exist so "become it" and return its name
+        //ObjectData with same hash alread exist so "become it" and return its name
         depth--;
         return hashSet[hash];
     }
 }
 
-std::string CppGenerator::GenerateCpp() {
+std::string CodeGenerator::GenerateCpp() {
     std::string text;
-    text += usingStrings ? "#include <string>\n" : "";
-    text += usingVectors ? "#include <vector>\n" : "";
+    text += usingVectors ? format.using_vector : "";
+    text += usingStrings ? format.using_string : "";
+    text += usingStrings || usingVectors ? "\n" : "";
 
     for (auto& sstruct : structureList)
     {
-        text += "struct " + sstruct.name + "{\n";
+        text += fmt::format(format.structS_format, sstruct.name);
         for (auto& member : sstruct.members)
         {
-            text += indent + member + ";\n";
+            text += indent + member + "\n";
         }
-        text += "};\n";
+        text += format.structE_format;
     }
 
     return text;
