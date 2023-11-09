@@ -4,6 +4,15 @@
 #include <vector>
 #include "jsonConverters.h"
 #include "win32.h"
+#include <csignal>
+
+#define VERSION_MAJOR 1
+#define VERSION_MINOR 0
+
+void signal_callback(int signum) {
+    std::cout << "Program terminated (" << signum << ")\n";
+    exit(signum);
+}
 
 int main(int argc, char* argv[]) {
     const std::string className = "MyClass";
@@ -14,12 +23,18 @@ int main(int argc, char* argv[]) {
     std::string filePath;
     std::string language;
 
+    signal(SIGINT, signal_callback);
+
+    if (cli) {
+        std::cout << "json2x " << VERSION_MAJOR << "." << VERSION_MINOR << "\n";
+    }
+
     do {
         if (cli) {
             std::cout << ">> ";
             std::cin >> filePath;
             std::cin >> language;
-
+            std::cout << "\n";
             if (filePath.empty() || language.empty()) {
                 std::cerr << ">> ERROR: Incorrect Syntax. Syntax is \"json2x <file-path> <language>\"\n";
             }
