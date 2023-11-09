@@ -1,5 +1,5 @@
 # json2x
- Convert any JSON file into a file of class definitions from a wide range of languages.
+#### _Convert JSON data into class definitions in a wide range of languages_
 
  ### Supported Languages
  - C++
