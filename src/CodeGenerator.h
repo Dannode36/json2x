@@ -28,6 +28,6 @@ private:
 	std::vector<ObjectData> structureList; //ObjectData ID (hash) mapped to itself
 
 	std::string AddJsonObjectToSL(rapidjson::Value* jsonValue, int& depth);
-	std::string getType(rapidjson::Value* jsonValue, int& depth);
+	std::string getType(rapidjson::Value* jsonValue, int depth);
 	std::string GenerateCpp();
 };

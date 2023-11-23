@@ -7,7 +7,7 @@
 #include "win32.h"
 
 #define VERSION_MAJOR 1
-#define VERSION_MINOR 0
+#define VERSION_MINOR 1
 
 void signal_callback(int signum) {
     std::cout << "Program terminated (" << signum << ")\n";

@@ -57,7 +57,7 @@ std::string CodeGenerator::convertJson(std::string& json, const LangFormat& form
 /// <param name="jsonValue"></param>
 /// <param name="depth"></param>
 /// <returns></returns>
-std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int& depth) {
+std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int depth) {
     if (depth > MAX_DEPTH) {
         printf_s("ERROR: Maximum search depth (%d) was reached while deducting a type\n", MAX_DEPTH);
         return "typeDeductStackOverflow";
@@ -66,8 +66,8 @@ std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int& depth) {
     if (jsonValue->IsArray()) {
         usingVectors = true;
         if (jsonValue->Size() > 0) {
-            return getType(&jsonValue->GetArray()[0], ++depth);
-            --depth;
+            std::cout << jsonValue->GetArray()[0].IsNull() << "\n";
+            return getType(&jsonValue->GetArray()[0], depth + 1);
         }
         else {
             return format.null_t;
