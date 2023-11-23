@@ -135,7 +135,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\CodeGenerator.cpp" />
-    <ClCompile Include="src\json2x.cpp" />
+    <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\win32.cpp" />
   </ItemGroup>
   <ItemGroup>
