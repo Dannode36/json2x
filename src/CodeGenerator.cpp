@@ -7,6 +7,7 @@
 #include "fmt/format.h"
 
 #define MAX_DEPTH 512 //Arbitrary number
+#define TYPE_ERROR "type_error"
 
 //Public Functions
 CodeGenerator::CodeGenerator(const std::string indent, const std::string className) : indent(indent), className(className)
@@ -45,7 +46,9 @@ std::string CodeGenerator::convertJson(std::string& json, const LangFormat& form
     //Get JsonValue* to the root object of the document
     auto* docObj = rapidjson::Pointer("").Get(doc); 
     int depth = 0;
-    AddJsonObjectToSL(docObj, depth);
+    if (AddJsonObjectToSL(docObj, depth) == TYPE_ERROR && structureList.size() < 1) {
+        return "";
+    }
     return GenerateCpp();
 }
 
@@ -66,11 +69,20 @@ std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int depth) {
     if (jsonValue->IsArray()) {
         usingVectors = true;
         if (jsonValue->Size() > 0) {
-            std::cout << jsonValue->GetArray()[0].IsNull() << "\n";
-            return getType(&jsonValue->GetArray()[0], depth + 1);
+            std::string arrayType;
+            for (auto& member : jsonValue->GetArray())
+            {
+                if (!member.IsNull()) {
+                    arrayType = getType(&member, depth + 1);
+                    if (arrayType != TYPE_ERROR) {
+                        return arrayType;
+                    }
+                }
+            }
+            return format.null_t;
         }
         else {
-            return format.null_t;
+            return TYPE_ERROR;
         }
     }
     else if (jsonValue->IsObject()) {
@@ -101,7 +113,7 @@ std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int depth) {
     else if (jsonValue->IsBool()) {
         return format.bool_t;
     }
-    return "typeError";
+    return "type_error";
 }
 
 /// <summary>
@@ -121,6 +133,10 @@ std::string CodeGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& d
     {
         std::string typeString = getType(&member.value, ++depth);
         depth--;
+
+        if (typeString == "type_error") {
+            return typeString;
+        }
 
         if (member.value.IsArray()) { //Modify type string to an array syntax
             typeString = fmt::format(format.array_format, typeString);
