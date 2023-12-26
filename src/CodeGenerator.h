@@ -6,9 +6,21 @@
 #include "rapidjson/pointer.h"
 #include "LangFormat.h"
 
-struct ObjectData {
+struct VariableData {
+	std::string type;
 	std::string name;
-	std::vector<std::string> members;
+	std::string& format;
+
+	VariableData(const std::string& type, const std::string& name, std::string& format)
+		: type(type), name(name), format(format)
+	{
+	}
+};
+
+struct ObjectData {
+	bool complete;
+	std::string name;
+	std::vector<VariableData> members;
 };
 
 class CodeGenerator {
@@ -24,8 +36,7 @@ private:
 	int classCount;
 
 	std::hash<std::string> stringHash;
-	std::map<size_t, std::string> hashSet; //ObjectData ID (hash) mapped to itself
-	std::vector<ObjectData> structureList; //ObjectData ID (hash) mapped to itself
+	std::map<size_t, ObjectData> structureSet; //ObjectData ID (hash) mapped to itself
 
 	std::string AddJsonObjectToSL(rapidjson::Value* jsonValue, int& depth);
 	std::string getType(rapidjson::Value* jsonValue, int depth);

@@ -7,7 +7,6 @@
 #include "fmt/format.h"
 
 #define MAX_DEPTH 512 //Arbitrary number
-#define TYPE_ERROR "type_error"
 
 //Public Functions
 CodeGenerator::CodeGenerator(const std::string indent, const std::string className) : indent(indent), className(className)
@@ -16,8 +15,7 @@ CodeGenerator::CodeGenerator(const std::string indent, const std::string classNa
     this->usingVectors = false;
     this->classCount = 0;
     this->stringHash = std::hash<std::string>();
-    this->structureList = std::vector<ObjectData>();
-    this->hashSet = std::map<size_t, std::string>();
+    this->structureSet = std::map<size_t, ObjectData>();
 }
 
 /// <summary>
@@ -30,8 +28,7 @@ std::string CodeGenerator::convertJson(std::string& json, const LangFormat& form
     usingStrings = false;
     usingVectors = false;
     classCount = 0;
-    structureList.clear();
-    hashSet.clear();
+    structureSet.clear();
 
     //Construct JSON document and parse
     rapidjson::Document doc;
@@ -46,20 +43,11 @@ std::string CodeGenerator::convertJson(std::string& json, const LangFormat& form
     //Get JsonValue* to the root object of the document
     auto* docObj = rapidjson::Pointer("").Get(doc); 
     int depth = 0;
-    if (AddJsonObjectToSL(docObj, depth) == TYPE_ERROR && structureList.size() < 1) {
-        return "";
-    }
+    AddJsonObjectToSL(docObj, depth);
     return GenerateCpp();
 }
 
 //Private Functions
-
-/// <summary>
-/// 
-/// </summary>
-/// <param name="jsonValue"></param>
-/// <param name="depth"></param>
-/// <returns></returns>
 std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int depth) {
     if (depth > MAX_DEPTH) {
         printf_s("ERROR: Maximum search depth (%d) was reached while deducting a type\n", MAX_DEPTH);
@@ -74,15 +62,15 @@ std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int depth) {
             {
                 if (!member.IsNull()) {
                     arrayType = getType(&member, depth + 1);
-                    if (arrayType != TYPE_ERROR) {
+                    if (!arrayType.empty()) {
                         return arrayType;
                     }
                 }
             }
-            return format.null_t;
+            return std::string();
         }
         else {
-            return TYPE_ERROR;
+            return std::string();
         }
     }
     else if (jsonValue->IsObject()) {
@@ -113,7 +101,7 @@ std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int depth) {
     else if (jsonValue->IsBool()) {
         return format.bool_t;
     }
-    return "type_error";
+    return std::string();
 }
 
 /// <summary>
@@ -128,44 +116,70 @@ std::string CodeGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& d
         return "objectDeductStackOverflow";
     }
 
-    ObjectData sstruct;
+    std::string hashValue;
     for (auto& member : jsonValue->GetObject())
     {
-        std::string typeString = getType(&member.value, ++depth);
-        depth--;
-
-        if (typeString == "type_error") {
-            return typeString;
-        }
-
-        if (member.value.IsArray()) { //Modify type string to an array syntax
-            typeString = fmt::format(format.array_format, typeString);
-        }
-        //IMPORTANT: Do not mix std::string and const char* when formatting... it took 2 hours to find this
-        std::string memberText = fmt::format(format.var_format, typeString.c_str(), member.name.GetString());
-        sstruct.members.emplace_back(memberText);
+        hashValue += member.name.GetString();
     }
-
-    std::string hashValue;
-    for (auto& i : sstruct.members)
-    {
-        hashValue += i;
-    }
-
     size_t hash = stringHash(hashValue);
-    if (hashSet.find(hash) == hashSet.end()) {
-        //ObjectData hash does not exist. Increment class counter and add new hash
-        sstruct.name = className + std::to_string(++classCount);
-        structureList.push_back(sstruct);
-        hashSet.insert({ hash, sstruct.name});
 
-        depth--;
-        return sstruct.name;
+    if (structureSet.find(hash) != structureSet.end()) {
+        if (structureSet[hash].complete) {
+            //ObjectData with same hash already exists so return its name
+            depth--;
+            return structureSet[hash].name;
+        }
+        else {
+            ObjectData& objectData = structureSet[hash];
+
+            int i = 0;
+            for (auto& member : jsonValue->GetObject())
+            {
+                if (objectData.members[i].type.empty()) {
+                    std::string typeString = getType(&member.value, ++depth);
+                    depth--;
+
+                    if (!typeString.empty()) {
+                        if (member.value.IsArray()) {
+                            objectData.members[i].type = typeString;
+                            objectData.members[i].format = format.array_format;
+                        }
+                        else {
+                            objectData.members[i].type = typeString;
+                            objectData.members[i].format = format.var_format;
+                        }
+                    }
+                }
+                
+                i++;
+            }
+
+            depth--;
+            return objectData.name;
+        }
     }
     else {
-        //ObjectData with same hash alread exist so "become it" and return its name
+        //ObjectData hash does not exist. Deduce its layout, increment class counter and add new hash
+
+        ObjectData objectData;
+        for (auto& member : jsonValue->GetObject())
+        {
+            std::string typeString = getType(&member.value, ++depth);
+            depth--;
+
+            if (member.value.IsArray()) {
+                objectData.members.emplace_back(typeString, member.name.GetString(), format.array_format);
+            }
+            else {
+                objectData.members.emplace_back(typeString, member.name.GetString(), format.var_format);
+            }
+        }
+
+        objectData.name = className + std::to_string(++classCount);
+        structureSet.emplace(hash, objectData);
+
         depth--;
-        return hashSet[hash];
+        return objectData.name;
     }
 }
 
@@ -175,12 +189,23 @@ std::string CodeGenerator::GenerateCpp() {
     text += usingStrings ? format.using_string : "";
     text += usingStrings || usingVectors ? "\n" : "";
 
-    for (auto& sstruct : structureList)
+    //Add objects to vector and sort by name
+    std::vector<ObjectData*> structureList;
+    for (auto& objectData : structureSet)
     {
-        text += fmt::format(format.structS_format, sstruct.name);
-        for (auto& member : sstruct.members)
+        structureList.emplace_back(&objectData.second);
+    }
+    /*std::sort(structureList.begin(), structureList.end(), 
+        [](const ObjectData& a, const ObjectData& b) -> bool {
+            return a.name < b.name;
+        });*/
+
+    for (auto& objectData : structureList)
+    {
+        text += fmt::format(format.structS_format, objectData->name);
+        for (auto& member : objectData->members)
         {
-            text += indent + member + "\n";
+            text += indent + fmt::format(member.format, member.type, member.name) + "\n";
         }
         text += format.structE_format;
     }
