@@ -31,6 +31,7 @@ std::string CodeGenerator::convertJson(std::string& json, const LangFormat& form
     classCount = 0;
     structureList.clear();
     hashSet.clear();
+    lastErrorCode = GenErrorNone;
 
     //Construct JSON document and parse
     rapidjson::Document doc;
@@ -39,6 +40,7 @@ std::string CodeGenerator::convertJson(std::string& json, const LangFormat& form
         fprintf(stderr, "ERROR: (offset %u): %s\n",
             (unsigned)doc.GetErrorOffset(),
             GetParseError_En(doc.GetParseError()));
+        lastErrorCode = GenErrorInvalidJson;
         return "";
     }
 
@@ -46,7 +48,7 @@ std::string CodeGenerator::convertJson(std::string& json, const LangFormat& form
     auto* docObj = rapidjson::Pointer("").Get(doc); 
     int depth = 0;
     AddJsonObjectToSL(docObj, depth);
-    return GenerateCpp();
+    return GenerateCode();
 }
 
 //Private Functions
@@ -59,8 +61,9 @@ std::string CodeGenerator::convertJson(std::string& json, const LangFormat& form
 /// <returns></returns>
 std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int& depth) {
     if (depth > MAX_DEPTH) {
-        printf_s("ERROR: Maximum search depth (%d) was reached while deducting a type\n", MAX_DEPTH);
-        return "typeDeductStackOverflow";
+        //printf_s("ERROR: Maximum search depth (%d) was reached while deducting a type\n", MAX_DEPTH);
+        lastErrorCode = GenErrorTypeTooDeep;
+        return "typeTooDeep";
     }
 
     if (jsonValue->IsArray()) {
@@ -101,7 +104,13 @@ std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int& depth) {
     else if (jsonValue->IsBool()) {
         return format.bool_t;
     }
+    lastErrorCode = GenErrorInvalidType;
     return "typeError";
+}
+
+GeneratorErrorCode CodeGenerator::getLastError() const
+{
+    return lastErrorCode;
 }
 
 /// <summary>
@@ -113,7 +122,8 @@ std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int& depth) {
 /// <returns>Name of the created or an identical ObjectData</returns>
 std::string CodeGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& depth) {
     if (depth > MAX_DEPTH) {
-        return "objectDeductStackOverflow";
+        lastErrorCode = GenErrorTypeTooDeep;
+        return "typeTooDeep";
     }
 
     ObjectData sstruct;
@@ -153,7 +163,7 @@ std::string CodeGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& d
     }
 }
 
-std::string CodeGenerator::GenerateCpp() {
+std::string CodeGenerator::GenerateCode() {
     std::string text;
     text += usingVectors ? format.using_vector : "";
     text += usingStrings ? format.using_string : "";

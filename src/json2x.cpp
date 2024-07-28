@@ -80,9 +80,9 @@ int main(int argc, char* argv[]) {
         //Construct a code generator object with an indent style (4 spaces) and an initial class name ("MyClass")
         CodeGenerator generator(indent, className);
 
-        //Write generated c++ code to a header file if no parsing error occured
+        //Write generated code to a file if no parsing error occured
         std::string codeText = generator.convertJson(json, format);
-        if (codeText.empty()) { //Error occured during JSON conversion/code generation
+        if (generator.getLastError() != GenErrorNone) { //Error occured during JSON conversion/code generation
             std::cerr << "ERROR: An error occured while converting the JSON (convertJson() returned an empty string) :(\n";
             continue;
         }
