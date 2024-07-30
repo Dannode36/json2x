@@ -38,7 +38,7 @@ private:
 	std::map<size_t, std::string> hashSet; //ObjectData ID (hash) mapped to itself
 	std::vector<ObjectData> structureList; //ObjectData ID (hash) mapped to itself
 
-	std::string AddJsonObjectToSL(rapidjson::Value* jsonValue, int& depth);
+	std::string DeserializeJsonObject(rapidjson::Value* jsonValue, int& depth);
 	std::string getType(rapidjson::Value* jsonValue, int& depth);
 	std::string GenerateCode();
 };

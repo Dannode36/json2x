@@ -83,7 +83,10 @@ int main(int argc, char* argv[]) {
         //Write generated code to a file if no parsing error occured
         std::string codeText = generator.convertJson(json, format);
         if (generator.getLastError() != GenErrorNone) { //Error occured during JSON conversion/code generation
-            std::cerr << "ERROR: An error occured while converting the JSON (convertJson() returned an empty string) :(\n";
+            
+            if (generator.getLastError() != GenErrorInvalidJson) {
+                std::cerr << "ERROR: An error occured while converting the JSON\n";
+            }
             continue;
         }
         else {

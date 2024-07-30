@@ -47,7 +47,7 @@ std::string CodeGenerator::convertJson(std::string& json, const LangFormat& form
     //Get JsonValue* to the root object of the document
     auto* docObj = rapidjson::Pointer("").Get(doc); 
     int depth = 0;
-    AddJsonObjectToSL(docObj, depth);
+    DeserializeJsonObject(docObj, depth);
     return GenerateCode();
 }
 
@@ -77,7 +77,7 @@ std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int& depth) {
         }
     }
     else if (jsonValue->IsObject()) {
-        return AddJsonObjectToSL(jsonValue, ++depth);
+        return DeserializeJsonObject(jsonValue, ++depth);
     }
     else if (jsonValue->IsInt()) {
         return format.int_t;
@@ -120,7 +120,7 @@ GeneratorErrorCode CodeGenerator::getLastError() const
 /// <param name="jsonValue">Starting node convert into an ObjectData</param>
 /// <param name="depth">Current recurse depth</param>
 /// <returns>Name of the created or an identical ObjectData</returns>
-std::string CodeGenerator::AddJsonObjectToSL(rapidjson::Value* jsonValue, int& depth) {
+std::string CodeGenerator::DeserializeJsonObject(rapidjson::Value* jsonValue, int& depth) {
     if (depth > MAX_DEPTH) {
         lastErrorCode = GenErrorTypeTooDeep;
         return "typeTooDeep";

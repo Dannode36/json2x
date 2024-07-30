@@ -1,0 +1,62 @@
+{
+  "menu": {
+    "id": "file",
+    "value": "File",
+    "popup": {
+      "menuitem": [
+        {
+          "value": "New"
+        },
+        {
+          "value": "Open"
+        },
+        {
+          "value": "Save"
+        }
+      ]
+    },
+    "popdown": {
+      "menuitem": [
+        {
+          "value": "New"
+        },
+        {
+          "value": "Open"
+        },
+        {
+          "value": "Save"
+        }
+      ]
+    }
+  },
+  "ui": {
+    "id": "file",
+    "value": "File",
+    "popup": {
+      "menuitem": [
+        {
+          "value": "New"
+        },
+        {
+          "value": "Open"
+        },
+        {
+          "value": "Save"
+        }
+      ]
+    },
+    "popdown": {
+      "menuitem": [
+        {
+          "value": "New"
+        },
+        {
+          "value": "Open"
+        },
+        {
+          "value": "Save"
+        }
+      ]
+    }
+  }
+}
