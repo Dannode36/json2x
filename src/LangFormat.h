@@ -33,10 +33,10 @@ struct LangFormat
 
 const std::map<std::string, LangFormat> globalFormats
 {
-    { "java", { "int", "float", "int", "long", "long", "double", "String", "bool", "empty", "{0} {1};", "ArrayList<{}>", "class {}\n{{\n", "}\n", "", "", L".java" } },
-    { "kotlin", { "int", "float", "UInt", "long", "ULong", "double", "String", "bool", "empty", "val {1}: {0};", "List<{}>", "class {}\n{{\n", "}\n", "", "", L".kt" } },
-    { "cpp", { "int", "float", "unsigned int", "long long", "unsigned long long", "double", "std::string", "bool", "void*", "{0} {1};", "std::vector<{}>", "struct {} {{\n", "};\n", "#include <vector>\n", "#include <string>\n", L".h" } },
-    { "csharp", { "int", "float", "uint", "long", "ulong", "double", "string", "bool", "empty", "{0} {1};", "List<{}>", "class {}\n{{\n", "}\n", "using System.Collections.Generic;\n", "", L".cs" } },
-    { "rust", { "i32", "f32", "u32", "i64", "u64", "f64", "String", "bool", "empty", "{1}: {0},", "Vec<{}>", "struct {}\n{{\n", "}\n", "", "", L".rs" } },
-    { "go", { "int", "float32", "uint32", "int64", "uint64", "float64", "string", "bool", "empty", "var {0} {1},", "Vec<{}>", "struct {}\n{{\n", "}\n", "", "", L".rs" } },
+    { "java", {     "int",  "float",     "int",          "long",         "long",                 "double",   "String",       "bool",     "empty",    "{0} {1};",         "ArrayList<{}>",    "class {}\n{{\n",   "}\n",  "",                                    "",                     L".java" } },
+    { "kotlin", {   "int",  "float",     "UInt",         "long",         "ULong",                "double",   "String",       "bool",     "empty",    "val {1}: {0};",    "List<{}>",         "class {}\n{{\n",   "}\n",  "",                                    "",                     L".kt" } },
+    { "cpp", {      "int",  "float",     "unsigned int", "long long",    "unsigned long long",   "double",   "std::string",  "bool",     "void*",    "{0} {1};",         "std::vector<{}>",  "struct {} {{\n",   "};\n", "#include <vector>\n",                 "#include <string>\n",  L".h" } },
+    { "csharp", {   "int",  "float",     "uint",         "long",         "ulong",                "double",   "string",       "bool",     "empty",    "{0} {1};",         "List<{}>",         "class {}\n{{\n",   "}\n",  "using System.Collections.Generic;\n", "",                     L".cs" } },
+    { "rust", {     "i32",  "f32",       "u32",          "i64",          "u64",                  "f64",      "String",       "bool",     "empty",    "{1}: {0},",        "Vec<{}>",          "struct {}\n{{\n",  "}\n",  "",                                    "",                     L".rs" } },
+    { "go", {       "int",  "float32",   "uint32",       "int64",        "uint64",               "float64",  "string",       "bool",     "empty",    "var {0} {1},",     "Vec<{}>",          "struct {}\n{{\n",  "}\n",  "",                                    "",                     L".go" } },
 };
