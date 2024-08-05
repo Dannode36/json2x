@@ -35,11 +35,11 @@ int main(int argc, char* argv[]) {
 
             std::cout << ">> ";
             std::string tempInput;
-            std::getline(std::cin >> std::ws, tempInput); //Text input is actual f!#ked in C++
+            std::getline(std::cin, tempInput); //Text input is actual f!#ked in C++
 
             std::stringstream ss(tempInput);
-            std::getline(ss, filePath, ' ');
-            std::getline(ss, language, ' ');
+            std::getline(ss >> std::ws, filePath, ' ');
+            std::getline(ss >> std::ws, language, ' ');
 
             if (filePath == "exit") {
                 exit(1);
@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
         if (generator.getLastError() != GenErrorNone) { //Error occured during JSON conversion/code generation
             
             if (generator.getLastError() != GenErrorInvalidJson) {
-                std::cerr << genOutput;
+                std::cerr << "An error occured";
             }
             continue;
         }

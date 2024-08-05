@@ -2,11 +2,13 @@
 #include <string>
 #include "jsonConverters.h"
 #include "rapidjson/error/en.h"
+#include <sstream>
 
 #define FMT_HEADER_ONLY
 #include "fmt/format.h"
 
-#define MAX_DEPTH 512 //Arbitrary number
+constexpr auto MAX_DEPTH = 512; //Arbitrary number;
+std::string typeError = "typeError";
 
 //Special Funcs (public & private) :p
 GeneratorErrorCode CodeGenerator::getLastError() const
@@ -42,7 +44,7 @@ CodeGenerator::CodeGenerator(const std::string indent, const std::string classNa
     this->classCount = 0;
     this->stringHash = std::hash<std::string>();
     this->structureList = std::vector<ObjectData>();
-    this->hashSet = std::map<size_t, size_t>();
+    this->hashSet = std::unordered_map<size_t, size_t>();
     this->lastErrorCode = GenErrorNone;
 }
 
@@ -63,9 +65,10 @@ std::string CodeGenerator::convertJson(std::string& json, const LangFormat& form
     doc.Parse(json.c_str());
     if (doc.HasParseError()) {
         lastErrorCode = GenErrorInvalidJson;
-        return fmt::format("ERROR: (offset {}}): {}\n",
+        fmt::print("ERROR: (offset {}}): {}\n",
             (unsigned)doc.GetErrorOffset(),
             GetParseError_En(doc.GetParseError()));
+        return "";
     }
 
     //Get JsonValue* to the root object of the document
@@ -126,7 +129,7 @@ std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int depth) {
         return format.bool_t;
     }
     lastErrorCode = GenErrorInvalidType;
-    return "typeError";
+    return typeError;
 }
 
 /// <summary>
@@ -150,46 +153,44 @@ std::string CodeGenerator::DeserializeJsonObject(rapidjson::Value* jsonValue, in
             sstruct.isComplete = false;
         }
 
-        sstruct.members.push_back({ typeString, member.name.GetString(), member.value.IsArray() });
+        sstruct.members.emplace_back(typeString, member.name.GetString(), member.value.IsArray());
 
         //IMPORTANT: Do not mix std::string and const char* when formatting... it took 2 hours to find this
         //std::string memberText = fmt::format(format.var_format, typeString.c_str(), member.name.GetString());
     }
 
     std::string hashValue;
-    for (auto& i : sstruct.members)
-    {
+    for (const auto& i : sstruct.members) {
         hashValue += i.name;
     }
-
     size_t hash = stringHash(hashValue);
-    if (hashSet.find(hash) == hashSet.end()) {
+
+    auto iter = hashSet.find(hash);
+    if (iter == hashSet.end()) {
         //ObjectData hash does not exist. Increment class counter and add new hash
         sstruct.name = className + std::to_string(++classCount);
 
-        structureList.push_back(sstruct);
+        structureList.push_back(std::move(sstruct));
         hashSet.insert({ hash, structureList.size() - 1});
 
-        return sstruct.name;
+        return structureList[structureList.size() - 1].name;
     }
     else {
         //Comapare variable types to merge if any are still "placeholders"
-        ObjectData& org = structureList[hashSet[hash]];
-        ObjectData& cur = sstruct;
-        assert(org.members.size() == cur.members.size()); //If this assert falls through somthing is wrong :p
+        ObjectData& org = structureList[iter->second];
+        assert(org.members.size() == sstruct.members.size()); //If this assert falls through somthing is wrong :p
 
         for (size_t i = 0; i < org.members.size(); i++)
         {
-            assert(org.members[i].name == cur.members[i].name);
+            assert(org.members[i].name == sstruct.members[i].name);
 
-            if (org.members[i].type == format.placeholder_t && cur.members[i].type != format.placeholder_t) {
-                org.members[i].type = cur.members[i].type;
-                org.members[i].isContainer = cur.members[i].isContainer;
+            if (org.members[i].type == format.placeholder_t && sstruct.members[i].type != format.placeholder_t) {
+                org.members[i].type = sstruct.members[i].type;
+                org.members[i].isContainer = sstruct.members[i].isContainer;
             }
         }
 
-        //ObjectData with same hash alread exist so "become it" and return its name
-        return structureList[hashSet[hash]].name;
+        return structureList[iter->second].name;
     }
 }
 

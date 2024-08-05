@@ -1,15 +1,20 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <map>
 #include <functional>
 #include "rapidjson/pointer.h"
 #include "LangFormat.h"
+#include <unordered_map>
 
 struct VariableData {
 	std::string type;
 	std::string name;
 	bool isContainer; //Should this this variable be formatted with the array format
+
+	VariableData(const std::string& type, const std::string& name, bool isContainer)
+		: type(type), name(name), isContainer(isContainer)
+	{
+	}
 };
 
 struct ObjectData {
@@ -41,7 +46,7 @@ private:
 	GeneratorErrorCode lastErrorCode;
 
 	std::hash<std::string> stringHash;
-	std::map<size_t, size_t> hashSet; //ObjectData ID (hash) mapped to index in structureList
+	std::unordered_map<size_t, size_t> hashSet; //ObjectData ID (hash) mapped to index in structureList
 	std::vector<ObjectData> structureList; //ObjectData ID (hash) mapped to itself
 
 	std::string DeserializeJsonObject(rapidjson::Value* jsonValue, int depth);
