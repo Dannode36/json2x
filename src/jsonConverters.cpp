@@ -178,24 +178,13 @@ std::string CodeGenerator::DeserializeJsonObject(rapidjson::Value* jsonValue, in
         ObjectData& cur = sstruct;
         assert(org.members.size() == cur.members.size()); //If this assert falls through somthing is wrong :p
 
-        if (!org.isComplete) {
-            for (size_t i = 0; i < org.members.size(); i++)
-            {
-                assert(org.members[i].name == cur.members[i].name);
+        for (size_t i = 0; i < org.members.size(); i++)
+        {
+            assert(org.members[i].name == cur.members[i].name);
 
-                if (org.members[i].type == format.placeholder_t && cur.members[i].type != format.placeholder_t) {
-                    org.members[i].type = cur.members[i].type;
-                    org.members[i].isContainer = cur.members[i].isContainer;
-                }
-            }
-
-            //Check if the object is now complete
-            for (size_t i = 0; i < org.members.size(); i++)
-            {
-                org.isComplete = true;
-                if (org.members[i].type == format.placeholder_t) {
-                    org.isComplete = false;
-                }
+            if (org.members[i].type == format.placeholder_t && cur.members[i].type != format.placeholder_t) {
+                org.members[i].type = cur.members[i].type;
+                org.members[i].isContainer = cur.members[i].isContainer;
             }
         }
 
