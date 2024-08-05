@@ -6,7 +6,7 @@
 #include "win32.h"
 #include <csignal>
 
-#define VERSION_MAJOR 1
+#define VERSION_MAJOR 2
 #define VERSION_MINOR 0
 
 void signal_callback(int signum) {
