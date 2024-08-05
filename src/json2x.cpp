@@ -81,17 +81,17 @@ int main(int argc, char* argv[]) {
         CodeGenerator generator(indent, className);
 
         //Write generated code to a file if no parsing error occured
-        std::string codeText = generator.convertJson(json, format);
+        std::string genOutput = generator.convertJson(json, format);
         if (generator.getLastError() != GenErrorNone) { //Error occured during JSON conversion/code generation
             
             if (generator.getLastError() != GenErrorInvalidJson) {
-                std::cerr << "ERROR: An error occured while converting the JSON\n";
+                std::cerr << genOutput;
             }
             continue;
         }
         else {
             std::ofstream outFile(getWorkingDirectory() + outFileName + format.file_extension);
-            outFile << codeText;
+            outFile << genOutput;
             std::cout << "Code generation successfull. Saved result to: ";
             std::wcout << getWorkingDirectory() + outFileName << format.file_extension << "\n";
         }

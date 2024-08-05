@@ -1,62 +1,208 @@
 {
-  "menu": {
-    "id": "file",
-    "value": "File",
-    "popup": {
-      "menuitem": [
-        {
-          "value": "New"
-        },
-        {
-          "value": "Open"
-        },
-        {
-          "value": "Save"
+  "users": [
+    {
+      "id": "66b0a666bc2167d5534db1eb",
+      "email": "jenifer_mcintyre@atgen.rw",
+      "roles": [
+        "guest",
+        "owner"
+      ],
+      "apiKey": "2a9f7a6f-451b-4ef3-b456-51051d81b712",
+      "profile": {
+        "dob": "1990-12-21",
+        "name": "Jenifer Mcintyre",
+        "about": "Esse ullamco eiusmod incididunt Lorem aute qui tempor do in ad dolore sint ad ipsum. Pariatur esse incididunt dolore ullamco occaecat id et.",
+        "address": "46 Ridge Boulevard, Groton, Northern Mariana Islands",
+        "company": "Atgen",
+        "location": {
+          "lat": -55.192682,
+          "long": 132.090001
         }
-      ]
+      },
+      "username": "jenifer90",
+      "createdAt": "2014-03-01T00:34:49.486Z",
+      "updatedAt": "2014-03-02T00:34:49.486Z"
     },
-    "popdown": {
-      "menuitem": [
-        {
-          "value": "New"
-        },
-        {
-          "value": "Open"
-        },
-        {
-          "value": "Save"
+    {
+      "id": "66b0a666375c248ed83b4dad",
+      "email": "essie_vasquez@insuron.bond",
+      "roles": [
+        "member"
+      ],
+      "apiKey": "6524abce-3c80-4157-a68a-f671d6f1029e",
+      "profile": {
+        "dob": "1990-12-09",
+        "name": "Essie Vasquez",
+        "about": "Aute aliqua do proident dolor cillum ea nulla elit est ea quis. Amet ad laboris voluptate ipsum veniam.",
+        "address": "57 Nassau Street, Brandermill, South Carolina",
+        "company": "Insuron",
+        "location": {
+          "lat": -7.017397,
+          "long": -64.982171
         }
-      ]
-    }
-  },
-  "ui": {
-    "id": "file",
-    "value": "File",
-    "popup": {
-      "menuitem": [
-        {
-          "value": "New"
-        },
-        {
-          "value": "Open"
-        },
-        {
-          "value": "Save"
-        }
-      ]
+      },
+      "username": "essie90",
+      "createdAt": "2013-03-10T12:22:55.849Z",
+      "updatedAt": "2013-03-11T12:22:55.849Z"
     },
-    "popdown": {
-      "menuitem": [
-        {
-          "value": "New"
-        },
-        {
-          "value": "Open"
-        },
-        {
-          "value": "Save"
+    {
+      "id": "66b0a6663c72f00f0f669231",
+      "email": "carolyn_orr@undertap.tz",
+      "roles": [
+        "guest",
+        "owner"
+      ],
+      "apiKey": "f89d6298-66db-483d-9a94-6107d7cd022e",
+      "profile": {
+        "dob": "1990-11-25",
+        "name": "Carolyn Orr",
+        "about": "Eu velit anim ut laborum fugiat nisi sunt sit. Reprehenderit amet incididunt est tempor veniam qui tempor aliqua quis proident irure.",
+        "address": "8 Townsend Street, Blodgett, Washington",
+        "company": "Undertap",
+        "location": {
+          "lat": 10.579144,
+          "long": -179.444128
         }
-      ]
+      },
+      "username": "carolyn90",
+      "createdAt": "2014-06-07T20:34:31.550Z",
+      "updatedAt": "2014-06-08T20:34:31.550Z"
+    },
+    {
+      "id": "66b0a666c32cecbb525ec503",
+      "email": "audrey_manning@kenegy.cal",
+      "roles": [
+        "admin",
+        "guest"
+      ],
+      "apiKey": "a82f0d7f-1ee2-40f6-9cd9-1d85eebbccf8",
+      "profile": {
+        "dob": "1989-09-06",
+        "name": "Audrey Manning",
+        "about": "Deserunt qui est non occaecat non dolor velit qui et. Ullamco id qui Lorem deserunt.",
+        "address": "40 Schweikerts Walk, Thynedale, Pennsylvania",
+        "company": "Kenegy",
+        "location": {
+          "lat": -51.401487,
+          "long": 91.399894
+        }
+      },
+      "username": "audrey89",
+      "createdAt": "2012-04-28T17:12:25.777Z",
+      "updatedAt": "2012-04-29T17:12:25.777Z"
+    },
+    {
+      "id": "66b0a666499c9c2709397894",
+      "email": "dale_newton@isoplex.football",
+      "roles": [
+        "admin"
+      ],
+      "apiKey": "fc1ada35-b5d8-4bd0-8310-3793e8b325f6",
+      "profile": {
+        "dob": "1990-04-12",
+        "name": "Dale Newton",
+        "about": "Aliqua veniam duis laborum nisi dolore proident voluptate minim nostrud duis consectetur nisi sunt. Ad proident laborum proident officia officia magna in laboris mollit esse tempor incididunt.",
+        "address": "32 Guernsey Street, Deltaville, New York",
+        "company": "Isoplex",
+        "location": {
+          "lat": -72.506326,
+          "long": -141.117128
+        }
+      },
+      "username": "dale90",
+      "createdAt": "2011-10-06T15:31:17.250Z",
+      "updatedAt": "2011-10-07T15:31:17.250Z"
+    },
+    {
+      "id": "66b0a666230897613d928a45",
+      "email": "lindsay_kim@qualitex.frogans",
+      "roles": [
+        "guest"
+      ],
+      "apiKey": "cc03cbeb-4265-47d3-b12a-e8be6d3b5fb2",
+      "profile": {
+        "dob": "1989-08-15",
+        "name": "Lindsay Kim",
+        "about": "Pariatur ex et irure amet commodo amet. Occaecat deserunt nostrud anim nulla aute fugiat dolor veniam incididunt Lorem velit exercitation dolor.",
+        "address": "40 Crawford Avenue, Dana, Utah",
+        "company": "Qualitex",
+        "location": {
+          "lat": 36.816592,
+          "long": 130.329118
+        }
+      },
+      "username": "lindsay89",
+      "createdAt": "2014-08-11T22:18:07.438Z",
+      "updatedAt": "2014-08-12T22:18:07.438Z"
+    },
+    {
+      "id": "66b0a66654b7231bfbb9fefb",
+      "email": "lawrence_morin@anixang.how",
+      "roles": [
+        "guest",
+        "member"
+      ],
+      "apiKey": "aec25c98-07ee-417d-9685-d3dc3988a0ab",
+      "profile": {
+        "dob": "1991-06-17",
+        "name": "Lawrence Morin",
+        "about": "Ea sint ipsum exercitation ipsum laborum aliqua enim nulla est id et. Nostrud incididunt commodo est minim eiusmod excepteur non tempor.",
+        "address": "73 Havens Place, Eagletown, Arkansas",
+        "company": "Anixang",
+        "location": {
+          "lat": 55.537185,
+          "long": -105.272193
+        }
+      },
+      "username": "lawrence91",
+      "createdAt": "2011-01-17T13:45:53.458Z",
+      "updatedAt": "2011-01-18T13:45:53.458Z"
+    },
+    {
+      "id": "66b0a6667211f912df043b87",
+      "email": "simmons_calhoun@speedbolt.aquarelle",
+      "roles": [
+        "owner",
+        "guest"
+      ],
+      "apiKey": "fe27d09f-2408-4876-9f0f-edda872233ab",
+      "profile": {
+        "dob": "1988-01-11",
+        "name": "Simmons Calhoun",
+        "about": "Et sint nisi fugiat deserunt occaecat Lorem eu non culpa fugiat occaecat minim. Ut nulla eu consectetur laborum duis ad eu.",
+        "address": "6 Adler Place, Datil, Guam",
+        "company": "Speedbolt",
+        "location": {
+          "lat": 24.979121,
+          "long": -106.408913
+        }
+      },
+      "username": "simmons88",
+      "createdAt": "2010-11-06T11:51:30.748Z",
+      "updatedAt": "2010-11-07T11:51:30.748Z"
+    },
+    {
+      "id": "66b0a66609b73ad1a51844b4",
+      "email": "horn_pruitt@dogtown.cleaning",
+      "roles": [
+        "member",
+        "owner"
+      ],
+      "apiKey": "6ee1faf3-bd78-4c9c-803d-84f1666ade6c",
+      "profile": {
+        "dob": "1990-10-01",
+        "name": "Horn Pruitt",
+        "about": "Cupidatat consectetur non elit minim irure commodo dolore deserunt elit pariatur cillum. Aliquip proident enim anim laboris laboris irure labore est et excepteur voluptate.",
+        "address": "21 Morton Street, Allentown, Marshall Islands",
+        "company": "Dogtown",
+        "location": {
+          "lat": 32.054275,
+          "long": 109.156615
+        }
+      },
+      "username": "horn90",
+      "createdAt": "2013-05-15T14:50:07.342Z",
+      "updatedAt": "2013-05-16T14:50:07.342Z"
     }
-  }
+  ]
 }

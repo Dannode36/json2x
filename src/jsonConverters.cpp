@@ -8,6 +8,32 @@
 
 #define MAX_DEPTH 512 //Arbitrary number
 
+//Special Funcs (public & private) :p
+GeneratorErrorCode CodeGenerator::getLastError() const
+{
+    return lastErrorCode;
+}
+
+std::string to_string(GeneratorErrorCode e)
+{
+#pragma warning( push )
+#pragma warning( default : 4061)
+    switch (e)
+    {
+    case GenErrorNone:
+        return "None";
+    case GenErrorInvalidJson:
+        return "Invalid Json";
+    case GenErrorInvalidType:
+        return "Invalid Type";
+    default:
+        break;
+    }
+#pragma warning ( pop )
+
+    assert(false); // should never get here, but casting and streaming can result in invalid enums
+}
+
 //Public Functions
 CodeGenerator::CodeGenerator(const std::string indent, const std::string className) : indent(indent), className(className)
 {
@@ -16,14 +42,13 @@ CodeGenerator::CodeGenerator(const std::string indent, const std::string classNa
     this->classCount = 0;
     this->stringHash = std::hash<std::string>();
     this->structureList = std::vector<ObjectData>();
-    this->hashSet = std::map<size_t, std::string>();
+    this->hashSet = std::map<size_t, size_t>();
+    this->lastErrorCode = GenErrorNone;
 }
 
 /// <summary>
 /// Convert JSON string into a string of C++ classe declarations 
 /// </summary>
-/// <param name="json">JSON string</param>
-/// <returns>C++ class declarations</returns>
 std::string CodeGenerator::convertJson(std::string& json, const LangFormat& format) {
     this->format = format;
     usingStrings = false;
@@ -37,11 +62,10 @@ std::string CodeGenerator::convertJson(std::string& json, const LangFormat& form
     rapidjson::Document doc;
     doc.Parse(json.c_str());
     if (doc.HasParseError()) {
-        fprintf(stderr, "ERROR: (offset %u): %s\n",
+        lastErrorCode = GenErrorInvalidJson;
+        return fmt::format("ERROR: (offset {}}): {}\n",
             (unsigned)doc.GetErrorOffset(),
             GetParseError_En(doc.GetParseError()));
-        lastErrorCode = GenErrorInvalidJson;
-        return "";
     }
 
     //Get JsonValue* to the root object of the document
@@ -51,33 +75,30 @@ std::string CodeGenerator::convertJson(std::string& json, const LangFormat& form
     return GenerateCode();
 }
 
-//Private Functions
+/// Private Functions
 
-/// <summary>
-/// 
-/// </summary>
-/// <param name="jsonValue"></param>
-/// <param name="depth"></param>
-/// <returns></returns>
-std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int& depth) {
+std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int depth) {
     if (depth > MAX_DEPTH) {
-        //printf_s("ERROR: Maximum search depth (%d) was reached while deducting a type\n", MAX_DEPTH);
-        lastErrorCode = GenErrorTypeTooDeep;
-        return "typeTooDeep";
+        return format.placeholder_t;
     }
 
     if (jsonValue->IsArray()) {
         usingVectors = true;
         if (jsonValue->Size() > 0) {
-            return getType(&jsonValue->GetArray()[0], ++depth);
-            --depth;
+            std::string type = format.placeholder_t;
+            for (size_t i = 0; i < jsonValue->Size(); i++)
+            {
+                std::string tempType = getType(&jsonValue->GetArray()[i], depth + 1);
+                if (type == format.placeholder_t && tempType != format.placeholder_t) {
+                    type = tempType;
+                }
+            }
+            return type;
         }
-        else {
-            return format.null_t;
-        }
+        return format.placeholder_t;
     }
     else if (jsonValue->IsObject()) {
-        return DeserializeJsonObject(jsonValue, ++depth);
+        return DeserializeJsonObject(jsonValue, depth + 1);
     }
     else if (jsonValue->IsInt()) {
         return format.int_t;
@@ -108,11 +129,6 @@ std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int& depth) {
     return "typeError";
 }
 
-GeneratorErrorCode CodeGenerator::getLastError() const
-{
-    return lastErrorCode;
-}
-
 /// <summary>
 /// Creates a new ObjectData by recursively searching the jsonValue's members and
 /// adds it to the structure list
@@ -120,46 +136,71 @@ GeneratorErrorCode CodeGenerator::getLastError() const
 /// <param name="jsonValue">Starting node convert into an ObjectData</param>
 /// <param name="depth">Current recurse depth</param>
 /// <returns>Name of the created or an identical ObjectData</returns>
-std::string CodeGenerator::DeserializeJsonObject(rapidjson::Value* jsonValue, int& depth) {
+std::string CodeGenerator::DeserializeJsonObject(rapidjson::Value* jsonValue, int depth) {
     if (depth > MAX_DEPTH) {
-        lastErrorCode = GenErrorTypeTooDeep;
-        return "typeTooDeep";
+        return format.placeholder_t;
     }
 
     ObjectData sstruct;
     for (auto& member : jsonValue->GetObject())
     {
-        std::string typeString = getType(&member.value, ++depth);
-        depth--;
+        std::string typeString = getType(&member.value, depth + 1);
 
-        if (member.value.IsArray()) { //Modify type string to an array syntax
-            typeString = fmt::format(format.array_format, typeString);
+        if (typeString == format.placeholder_t) {
+            sstruct.isComplete = false;
         }
+
+        sstruct.members.push_back({ typeString, member.name.GetString(), member.value.IsArray() });
+
         //IMPORTANT: Do not mix std::string and const char* when formatting... it took 2 hours to find this
-        std::string memberText = fmt::format(format.var_format, typeString.c_str(), member.name.GetString());
-        sstruct.members.emplace_back(memberText);
+        //std::string memberText = fmt::format(format.var_format, typeString.c_str(), member.name.GetString());
     }
 
     std::string hashValue;
     for (auto& i : sstruct.members)
     {
-        hashValue += i;
+        hashValue += i.name;
     }
 
     size_t hash = stringHash(hashValue);
     if (hashSet.find(hash) == hashSet.end()) {
         //ObjectData hash does not exist. Increment class counter and add new hash
         sstruct.name = className + std::to_string(++classCount);
-        structureList.push_back(sstruct);
-        hashSet.insert({ hash, sstruct.name});
 
-        depth--;
+        structureList.push_back(sstruct);
+        hashSet.insert({ hash, structureList.size() - 1});
+
         return sstruct.name;
     }
     else {
+        //Comapare variable types to merge if any are still "placeholders"
+        ObjectData& org = structureList[hashSet[hash]];
+        ObjectData& cur = sstruct;
+        assert(org.members.size() == cur.members.size()); //If this assert falls through somthing is wrong :p
+
+        if (!org.isComplete) {
+            for (size_t i = 0; i < org.members.size(); i++)
+            {
+                assert(org.members[i].name == cur.members[i].name);
+
+                if (org.members[i].type == format.placeholder_t && cur.members[i].type != format.placeholder_t) {
+                    org.members[i].type = cur.members[i].type;
+                    org.members[i].isContainer = cur.members[i].isContainer;
+                }
+            }
+
+            //Check if the object is now complete
+            for (size_t i = 0; i < org.members.size(); i++)
+            {
+                org.isComplete = true;
+                if (org.members[i].type == format.placeholder_t) {
+                    org.isComplete = false;
+                }
+            }
+        }
+
         //ObjectData with same hash alread exist so "become it" and return its name
-        depth--;
-        return hashSet[hash];
+        return structureList[hashSet[hash]].name;
     }
 }
 
@@ -174,7 +215,12 @@ std::string CodeGenerator::GenerateCode() {
         text += fmt::format(format.structS_format, sstruct.name);
         for (auto& member : sstruct.members)
         {
-            text += indent + member + "\n";
+            if (member.isContainer) {
+                text += indent + fmt::format(format.var_format, fmt::format(format.array_format, member.type), member.name) + "\n";
+            }
+            else {
+                text += indent + fmt::format(format.var_format, member.type, member.name) + "\n";
+            }
         }
         text += format.structE_format;
     }
