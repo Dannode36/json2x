@@ -134,11 +134,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\CLArgs.cpp" />
     <ClCompile Include="src\jsonConverters.cpp" />
     <ClCompile Include="src\json2x.cpp" />
     <ClCompile Include="src\win32.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\CLArgs.h" />
     <ClInclude Include="src\LangFormat.h" />
     <ClInclude Include="src\jsonConverters.h" />
     <ClInclude Include="src\win32.h" />
