@@ -1,9 +1,8 @@
 #include "win32.h"
 #include <windows.h>
 #include <tchar.h>
-#define WIN32_LEAN_AND_MEAN
 
-std::string openFileDialog()
+std::wstring openFileDialog()
 {
     OPENFILENAME ofn = { 0 };
     TCHAR szFile[260] = { 0 };
@@ -21,10 +20,9 @@ std::string openFileDialog()
 
     if (GetOpenFileName(&ofn) == TRUE)
     {
-        std::wstring ws(ofn.lpstrFile);
-        return std::string(ws.begin(), ws.end());
+        return ofn.lpstrFile;
     }
-    return "/";
+    return L"";
 }
 
 std::wstring getWorkingDirectory() {

@@ -2,48 +2,23 @@
 #include <string>
 #include "jsonConverters.h"
 #include "rapidjson/error/en.h"
+#include <sstream>
+#include "Options.h"
 
 #define FMT_HEADER_ONLY
 #include "fmt/format.h"
 
-#define MAX_DEPTH 512 //Arbitrary number
-
-//Special Funcs (public & private) :p
-GeneratorErrorCode CodeGenerator::getLastError() const
-{
-    return lastErrorCode;
-}
-
-std::string to_string(GeneratorErrorCode e)
-{
-#pragma warning( push )
-#pragma warning( default : 4061)
-    switch (e)
-    {
-    case GenErrorNone:
-        return "None";
-    case GenErrorInvalidJson:
-        return "Invalid Json";
-    case GenErrorInvalidType:
-        return "Invalid Type";
-    default:
-        break;
-    }
-#pragma warning ( pop )
-
-    assert(false); // should never get here, but casting and streaming can result in invalid enums
-}
+constexpr auto MAX_DEPTH = 512; //Arbitrary number;
+std::string typeError = "typeError";
 
 //Public Functions
-CodeGenerator::CodeGenerator(const std::string indent, const std::string className) : indent(indent), className(className)
-{
+CodeGenerator::CodeGenerator(const std::string indent, const std::string className) : indent(indent), className(className) {
     this->usingStrings = false;
     this->usingVectors = false;
     this->classCount = 0;
     this->stringHash = std::hash<std::string>();
     this->structureList = std::vector<ObjectData>();
-    this->hashSet = std::map<size_t, size_t>();
-    this->lastErrorCode = GenErrorNone;
+    this->hashSet = std::unordered_map<size_t, size_t>();
 }
 
 /// <summary>
@@ -56,16 +31,16 @@ std::string CodeGenerator::convertJson(std::string& json, const LangFormat& form
     classCount = 0;
     structureList.clear();
     hashSet.clear();
-    lastErrorCode = GenErrorNone;
 
     //Construct JSON document and parse
     rapidjson::Document doc;
     doc.Parse(json.c_str());
     if (doc.HasParseError()) {
-        lastErrorCode = GenErrorInvalidJson;
-        return fmt::format("ERROR: (offset {}}): {}\n",
+        throw std::exception(
+            fmt::format("ERROR: (offset {}}): {}\n",
             (unsigned)doc.GetErrorOffset(),
-            GetParseError_En(doc.GetParseError()));
+            GetParseError_En(doc.GetParseError())).c_str()
+        );
     }
 
     //Get JsonValue* to the root object of the document
@@ -101,19 +76,19 @@ std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int depth) {
         return DeserializeJsonObject(jsonValue, depth + 1);
     }
     else if (jsonValue->IsInt()) {
-        return format.int_t;
+        return format.int32_t;
     }
     else if (jsonValue->IsFloat()) {
         return format.float_t;
     }
     else if (jsonValue->IsUint()) {
-        return format.uint_t;
+        return format.uint32_t;
     }
     else if (jsonValue->IsInt64()) {
-        return format.ll_t;
+        return format.int64_t;
     }
     else if (jsonValue->IsUint64()) {
-        return format.ull_t;
+        return format.uint64_t;
     }
     else if (jsonValue->IsDouble()) {
         return format.double_t;
@@ -125,8 +100,14 @@ std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int depth) {
     else if (jsonValue->IsBool()) {
         return format.bool_t;
     }
-    lastErrorCode = GenErrorInvalidType;
-    return "typeError";
+
+    //Handle error
+    if (CLOptions::isPushThroughErrors()) {
+        return typeError;
+    }
+    else {
+        throw std::exception("Type of JSON value could not be determined. RapidJSON type was {}", jsonValue->GetType());
+    }
 }
 
 /// <summary>
@@ -150,68 +131,101 @@ std::string CodeGenerator::DeserializeJsonObject(rapidjson::Value* jsonValue, in
             sstruct.isComplete = false;
         }
 
-        sstruct.members.push_back({ typeString, member.name.GetString(), member.value.IsArray() });
+        sstruct.members.emplace_back(typeString, member.name.GetString(), member.value.IsArray());
 
         //IMPORTANT: Do not mix std::string and const char* when formatting... it took 2 hours to find this
         //std::string memberText = fmt::format(format.var_format, typeString.c_str(), member.name.GetString());
     }
 
     std::string hashValue;
-    for (auto& i : sstruct.members)
-    {
+    for (const auto& i : sstruct.members) {
         hashValue += i.name;
     }
-
     size_t hash = stringHash(hashValue);
-    if (hashSet.find(hash) == hashSet.end()) {
+
+    auto iter = hashSet.find(hash);
+    if (iter == hashSet.end()) {
         //ObjectData hash does not exist. Increment class counter and add new hash
         sstruct.name = className + std::to_string(++classCount);
 
-        structureList.push_back(sstruct);
+        structureList.push_back(std::move(sstruct));
         hashSet.insert({ hash, structureList.size() - 1});
 
-        return sstruct.name;
+        return structureList[structureList.size() - 1].name;
     }
     else {
         //Comapare variable types to merge if any are still "placeholders"
-        ObjectData& org = structureList[hashSet[hash]];
-        ObjectData& cur = sstruct;
-        assert(org.members.size() == cur.members.size()); //If this assert falls through somthing is wrong :p
+        ObjectData& org = structureList[iter->second];
+        assert(org.members.size() == sstruct.members.size()); //If this assert falls through somthing is wrong :p
 
         for (size_t i = 0; i < org.members.size(); i++)
         {
-            assert(org.members[i].name == cur.members[i].name);
+            assert(org.members[i].name == sstruct.members[i].name);
 
-            if (org.members[i].type == format.placeholder_t && cur.members[i].type != format.placeholder_t) {
-                org.members[i].type = cur.members[i].type;
-                org.members[i].isContainer = cur.members[i].isContainer;
+            if (org.members[i].type == format.placeholder_t && sstruct.members[i].type != format.placeholder_t) {
+                org.members[i].type = sstruct.members[i].type;
+                org.members[i].isContainer = sstruct.members[i].isContainer;
             }
         }
 
-        //ObjectData with same hash alread exist so "become it" and return its name
-        return structureList[hashSet[hash]].name;
+        //Update the objects completion state
+        for (size_t i = 0; i < org.members.size(); i++)
+        {
+            org.isComplete = true;
+            if (org.members[i].type == format.placeholder_t) {
+                org.isComplete = false;
+            }
+        }
+
+        return structureList[iter->second].name;
     }
 }
 
 std::string CodeGenerator::GenerateCode() {
+
+    int completedClasses = 0;
+    for (auto& object : structureList)
+    {
+        if (!object.isComplete) {
+            if (CLOptions::isForcePerfection()) {
+                throw std::exception("Some objects could not be parsed to completion (-p)");
+            }
+            continue;
+        }
+
+        completedClasses++;
+    }
+
+    //Do some debug logging (maybe)
+    if (CLOptions::isLogging()) {
+        fmt::print("{} class definitions were extracted. ", structureList.size());
+        fmt::print("{}/{} were completed ({:.2f}%)\n", 
+            completedClasses, structureList.size(), completedClasses / static_cast<float>(structureList.size()) * 100);
+    }
+
     std::string text;
-    text += usingVectors ? format.using_vector : "";
-    text += usingStrings ? format.using_string : "";
+    text += usingVectors ? format.using_array + "\n" : "";
+    text += usingStrings ? format.using_string + "\n" : "";
     text += usingStrings || usingVectors ? "\n" : "";
 
-    for (auto& sstruct : structureList)
-    {
-        text += fmt::format(format.structS_format, sstruct.name);
-        for (auto& member : sstruct.members)
+    try {
+        for (auto& sstruct : structureList)
         {
-            if (member.isContainer) {
-                text += indent + fmt::format(format.var_format, fmt::format(format.array_format, member.type), member.name) + "\n";
+            text += fmt::format(format.structS_format + "\n", sstruct.name);
+            for (auto& member : sstruct.members)
+            {
+                if (member.isContainer) {
+                    text += indent + fmt::format(format.var_format, fmt::format(format.array_format, member.type), member.name) + "\n";
+                }
+                else {
+                    text += indent + fmt::format(format.var_format, member.type, member.name) + "\n";
+                }
             }
-            else {
-                text += indent + fmt::format(format.var_format, member.type, member.name) + "\n";
-            }
+            text += format.structE_format + "\n";
         }
-        text += format.structE_format;
+    }
+    catch (std::exception e) {
+        throw std::exception("Invalid format string. Check { are escaped properly ({{)");
     }
 
     return text;
