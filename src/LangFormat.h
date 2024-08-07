@@ -27,7 +27,7 @@ struct LangFormat
 
     LangFormat() = default;
 
-    void parseUserFormat(std::string name);
+    void parseFormatByName(std::string name);
 };
 
 const std::map<std::string, LangFormat> globalFormats

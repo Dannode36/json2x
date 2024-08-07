@@ -84,6 +84,10 @@ int main(int argc, char* argv[]) {
             //Load JSON file
             std::ifstream jsonFile(filePath);
 
+            if (!jsonFile.is_open()) {
+                throw std::exception(("The file \"" + filePath + "\" could not be opened").c_str());
+            }
+
             //Read file contents into a string
             std::string json((std::istreambuf_iterator<char>(jsonFile)),
                 std::istreambuf_iterator<char>());
