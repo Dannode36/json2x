@@ -73,6 +73,9 @@ int main(int argc, char* argv[]) {
                 //Check if language format is supported
                 if (globalFormats.find(language) == globalFormats.end()) {
                     //so hacky... so edgey... -_- (why no use fmt? no ask me)
+
+                    //try and find a custom language format here?
+
                     throw std::exception(("\"" + language + "\" is not a supported language\n").c_str());
                 }
                 else {
