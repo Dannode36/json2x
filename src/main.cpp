@@ -72,11 +72,7 @@ int main(int argc, char* argv[]) {
 
                 //Check if language format is supported
                 if (globalFormats.find(language) == globalFormats.end()) {
-                    //so hacky... so edgey... -_- (why no use fmt? no ask me)
-
-                    //try and find a custom language format here?
-
-                    throw std::exception(("\"" + language + "\" is not a supported language\n").c_str());
+                    format.parseUserFormat(language);
                 }
                 else {
                     format = globalFormats.at(language);
@@ -100,11 +96,12 @@ int main(int argc, char* argv[]) {
 
             //Write generated code to file
             auto dir = CLOptions::outputDirectory().empty() ? getWorkingDirectory() : CLOptions::outputDirectory();
-            std::ofstream outFile(dir + outFileName + format.file_extension);
+            std::wstring wsFileExtension = std::wstring(format.file_extension.begin(), format.file_extension.end());
+            std::ofstream outFile(dir + outFileName + L'.' + wsFileExtension);
             outFile << genOutput;
 
             std::cout << "Code generation successfull. Saved result to: ";
-            std::wcout << dir + outFileName << format.file_extension << "\n";
+            std::wcout << dir + outFileName << wsFileExtension << "\n";
         }
         catch (const std::exception& e)
         {

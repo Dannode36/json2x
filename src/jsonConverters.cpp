@@ -76,19 +76,19 @@ std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int depth) {
         return DeserializeJsonObject(jsonValue, depth + 1);
     }
     else if (jsonValue->IsInt()) {
-        return format.int_t;
+        return format.int32_t;
     }
     else if (jsonValue->IsFloat()) {
         return format.float_t;
     }
     else if (jsonValue->IsUint()) {
-        return format.uint_t;
+        return format.uint32_t;
     }
     else if (jsonValue->IsInt64()) {
-        return format.ll_t;
+        return format.int64_t;
     }
     else if (jsonValue->IsUint64()) {
-        return format.ull_t;
+        return format.uint64_t;
     }
     else if (jsonValue->IsDouble()) {
         return format.double_t;
@@ -204,23 +204,28 @@ std::string CodeGenerator::GenerateCode() {
     }
 
     std::string text;
-    text += usingVectors ? format.using_vector : "";
-    text += usingStrings ? format.using_string : "";
+    text += usingVectors ? format.using_array + "\n" : "";
+    text += usingStrings ? format.using_string + "\n" : "";
     text += usingStrings || usingVectors ? "\n" : "";
 
-    for (auto& sstruct : structureList)
-    {
-        text += fmt::format(format.structS_format, sstruct.name);
-        for (auto& member : sstruct.members)
+    try {
+        for (auto& sstruct : structureList)
         {
-            if (member.isContainer) {
-                text += indent + fmt::format(format.var_format, fmt::format(format.array_format, member.type), member.name) + "\n";
+            text += fmt::format(format.structS_format + "\n", sstruct.name);
+            for (auto& member : sstruct.members)
+            {
+                if (member.isContainer) {
+                    text += indent + fmt::format(format.var_format, fmt::format(format.array_format, member.type), member.name) + "\n";
+                }
+                else {
+                    text += indent + fmt::format(format.var_format, member.type, member.name) + "\n";
+                }
             }
-            else {
-                text += indent + fmt::format(format.var_format, member.type, member.name) + "\n";
-            }
+            text += format.structE_format + "\n";
         }
-        text += format.structE_format;
+    }
+    catch (std::exception e) {
+        throw std::exception("Invalid format string. Check { are escaped properly ({{)");
     }
 
     return text;

@@ -1,0 +1,18 @@
+{
+  "int32": "int",
+  "uint32": "uint",
+  "int64": "int64_t",
+  "uint64": "uint64_t",
+  "float32": "float",
+  "float64": "double",
+  "bool": "bool",
+  "string": "string",
+  "placeholder": "void*",
+  "var": "{0} {1};",
+  "array": "std::vector<{}>",
+  "structStart": "struct {} {{",
+  "structEnd": "};",
+  "usingArray": "#include <vector>",
+  "usingString": "#include <string>",
+  "extension": "h"
+}
