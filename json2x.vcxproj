@@ -91,6 +91,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -134,13 +136,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\CLArgs.cpp" />
+    <ClCompile Include="src\Options.cpp" />
     <ClCompile Include="src\jsonConverters.cpp" />
-    <ClCompile Include="src\json2x.cpp" />
+    <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\win32.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\CLArgs.h" />
+    <ClInclude Include="src\Options.h" />
     <ClInclude Include="src\LangFormat.h" />
     <ClInclude Include="src\jsonConverters.h" />
     <ClInclude Include="src\win32.h" />

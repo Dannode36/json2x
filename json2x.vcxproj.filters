@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\json2x.cpp">
+    <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\jsonConverters.cpp">
@@ -24,7 +24,7 @@
     <ClCompile Include="src\win32.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\CLArgs.cpp">
+    <ClCompile Include="src\Options.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -38,7 +38,7 @@
     <ClInclude Include="src\LangFormat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\CLArgs.h">
+    <ClInclude Include="src\Options.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

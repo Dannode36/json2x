@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
 
-std::string openFileDialog();
-
+std::wstring openFileDialog();
 std::wstring getWorkingDirectory();

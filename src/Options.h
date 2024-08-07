@@ -4,9 +4,9 @@
 
 namespace CLOptions {
 	void parse(std::vector<std::string>& args);
-	bool isForced();
-	bool isNoErrors();
+	bool isPushThroughErrors();
+	bool isForcePerfection();
 	bool isLogging();
 	std::string indent();
+	std::wstring outputDirectory();
 }
-
