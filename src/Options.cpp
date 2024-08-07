@@ -10,11 +10,11 @@ constexpr auto FILE_DIALOG_CMD = "-p";		//Allows the user to select file paths u
 constexpr auto FOLDER_DIALOG_CMD = "-dp";	//Allows the user to select directory paths using a file dialog
 
 namespace CLOptions {
-	bool o_pushThroughErrors = false;		//"-f": Force json2x to output code regardless of possibly fatal errors
-	bool o_forcePerfection = false;			//"-p": Throw an error if any placeholder are present after code generation
-	bool o_logging = false;					//"-l": Some extra logging generally for debugging
-	std::string o_indent = "    ";			//"-i <type> <num>": The indent used for code generation
-	std::wstring outputDir = L"";				//"-o <directory>"Custom output directory. Leave blank for default (working directory)
+	bool o_pushThroughErrors = false;		//"-f":					Force json2x to output code regardless of possibly fatal errors
+	bool o_forcePerfection = false;			//"-p":					Throw an error if any placeholder are present after code generation
+	bool o_logging = false;					//"-l":					Some extra logging generally for debugging
+	std::string o_indent = "    ";			//"-i <type> <num>":	The indent used for code generation
+	std::wstring outputDir = L"";			//"-o <directory>"		Custom output directory. Leave blank for default (working directory)
 
 	void parse(std::vector<std::string>& args)
 	{

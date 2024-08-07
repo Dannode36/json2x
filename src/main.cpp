@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
 
                 //Check if language format is supported
                 if (globalFormats.find(language) == globalFormats.end()) {
-                    format.parseUserFormat(language);
+                    format.parseFormatByName(language);
                 }
                 else {
                     format = globalFormats.at(language);
