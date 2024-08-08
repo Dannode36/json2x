@@ -8,9 +8,6 @@
 #define FMT_HEADER_ONLY
 #include "fmt/format.h"
 
-constexpr auto MAX_DEPTH = 512; //Arbitrary number;
-std::string typeError = "typeError";
-
 //Public Functions
 CodeGenerator::CodeGenerator(const std::string indent, const std::string className) : indent(indent), className(className) {
     this->usingStrings = false;
@@ -46,13 +43,13 @@ std::string CodeGenerator::convertJson(std::string& json, const LangFormat& form
     //Get JsonValue* to the root object of the document
     auto* docObj = rapidjson::Pointer("").Get(doc); 
     int depth = 0;
-    DeserializeJsonObject(docObj, depth);
+    DeserializeJsonObject(docObj, rootClassName, depth);
     return GenerateCode();
 }
 
 /// Private Functions
 
-std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int depth) {
+std::string CodeGenerator::getType(rapidjson::Value* jsonValue, std::string memberName, int depth) {
     if (depth > MAX_DEPTH) {
         return format.placeholder_t;
     }
@@ -63,7 +60,7 @@ std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int depth) {
             std::string type = format.placeholder_t;
             for (size_t i = 0; i < jsonValue->Size(); i++)
             {
-                std::string tempType = getType(&jsonValue->GetArray()[i], depth + 1);
+                std::string tempType = getType(&jsonValue->GetArray()[i], className + std::to_string(++classCount), depth + 1);
                 if (type == format.placeholder_t && tempType != format.placeholder_t) {
                     type = tempType;
                 }
@@ -73,7 +70,7 @@ std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int depth) {
         return format.placeholder_t;
     }
     else if (jsonValue->IsObject()) {
-        return DeserializeJsonObject(jsonValue, depth + 1);
+        return DeserializeJsonObject(jsonValue, memberName, depth + 1);
     }
     else if (jsonValue->IsInt()) {
         return format.int32_t;
@@ -117,7 +114,7 @@ std::string CodeGenerator::getType(rapidjson::Value* jsonValue, int depth) {
 /// <param name="jsonValue">Starting node convert into an ObjectData</param>
 /// <param name="depth">Current recurse depth</param>
 /// <returns>Name of the created or an identical ObjectData</returns>
-std::string CodeGenerator::DeserializeJsonObject(rapidjson::Value* jsonValue, int depth) {
+std::string CodeGenerator::DeserializeJsonObject(rapidjson::Value* jsonValue, std::string memberName, int depth) {
     if (depth > MAX_DEPTH) {
         return format.placeholder_t;
     }
@@ -125,7 +122,7 @@ std::string CodeGenerator::DeserializeJsonObject(rapidjson::Value* jsonValue, in
     ObjectData sstruct;
     for (auto& member : jsonValue->GetObject())
     {
-        std::string typeString = getType(&member.value, depth + 1);
+        std::string typeString = getType(&member.value, member.name.GetString(), depth + 1);
 
         if (typeString == format.placeholder_t) {
             sstruct.isComplete = false;
@@ -144,14 +141,13 @@ std::string CodeGenerator::DeserializeJsonObject(rapidjson::Value* jsonValue, in
     size_t hash = stringHash(hashValue);
 
     auto iter = hashSet.find(hash);
-    if (iter == hashSet.end()) {
-        //ObjectData hash does not exist. Increment class counter and add new hash
-        sstruct.name = className + std::to_string(++classCount);
+    if (iter == hashSet.end()) { //ObjectData hash does not exist.
+        sstruct.name = memberName;
 
         structureList.push_back(std::move(sstruct));
         hashSet.insert({ hash, structureList.size() - 1});
 
-        return structureList[structureList.size() - 1].name;
+        return memberName;
     }
     else {
         //Comapare variable types to merge if any are still "placeholders"

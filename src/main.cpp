@@ -11,7 +11,7 @@ constexpr auto VERSION_MAJOR = 2;
 constexpr auto VERSION_MINOR = 1;
 
 int main(int argc, char* argv[]) {
-    const std::string className = "MyClass";
+    const std::string className = "Class";
     const std::wstring outFileName = L"\\output";
     bool running = true;
 

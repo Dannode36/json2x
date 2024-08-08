@@ -6,6 +6,10 @@
 #include "LangFormat.h"
 #include <unordered_map>
 
+constexpr int MAX_DEPTH = 512; //Arbitrary number;
+constexpr const char* typeError = "typeError";
+constexpr const char* rootClassName = "Root";
+
 struct VariableData {
 	std::string type;
 	std::string name;
@@ -39,7 +43,7 @@ private:
 	std::unordered_map<size_t, size_t> hashSet; //ObjectData ID (hash) mapped to index in structureList
 	std::vector<ObjectData> structureList; //ObjectData ID (hash) mapped to itself
 
-	std::string DeserializeJsonObject(rapidjson::Value* jsonValue, int depth);
-	std::string getType(rapidjson::Value* jsonValue, int depth);
+	std::string DeserializeJsonObject(rapidjson::Value* jsonValue, std::string memberName, int depth);
+	std::string getType(rapidjson::Value* jsonValue, std::string memberName, int depth);
 	std::string GenerateCode();
 };
