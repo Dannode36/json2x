@@ -15,10 +15,6 @@ int main(int argc, char* argv[]) {
     const std::wstring outFileName = L"\\output";
     bool running = true;
 
-    LangFormat format;
-    std::string filePath;
-    std::string language;
-
     std::cout << "json2x " << VERSION_MAJOR << "." << VERSION_MINOR << "\n";
 
     while (running)
@@ -27,20 +23,16 @@ int main(int argc, char* argv[]) {
         {
             //Parse argument input
             {
-                filePath.clear();
-                language.clear();
-                std::vector<std::string> optionalArgs{};
+                std::vector<std::string> args{};
 
                 if (argc > 1) {
 
                     if (argc < 3) {
                         throw std::exception("Correct syntax is \"json2x <file-path> <language> <options>\"\n");
                     }
-                    filePath = argv[1];
-                    language = argv[2];
 
-                    for (int i = 3; i < argc; i++) {
-                        optionalArgs.push_back(argv[i]);
+                    for (int i = 0; i < argc; i++) {
+                        args.push_back(argv[i]);
                     }
 
                     running = false; //Run once
@@ -48,44 +40,30 @@ int main(int argc, char* argv[]) {
                 }
                 else {
                     std::cout << ">> ";
+
                     std::string tempInput;
                     std::getline(std::cin, tempInput); //Text input is actual f!#ked in C++
-
-                    std::stringstream ss(tempInput);
-                    std::getline(ss >> std::ws, filePath, ' ');
-                    std::getline(ss >> std::ws, language, ' ');
+                    std::stringstream userInput(tempInput);
 
                     //Parse optional args
                     std::string tempArg;
-                    while (std::getline(ss >> std::ws, tempArg, ' ')) {
-                        optionalArgs.push_back(tempArg);
+                    while (std::getline(userInput >> std::ws, tempArg, ' ')) {
+                        if (tempArg == "exit") {
+                            exit(1);
+                        }
+
+                        args.push_back(tempArg);
                     }
                 }
 
-                if (filePath == "exit") {
-                    exit(1);
-                }
-
-                if (filePath.empty() || language.empty()) {
-                    throw std::exception("Correct syntax is \"<file-path> <language> <options>\"");
-                }
-
-                //Check if language format is supported
-                if (globalFormats.find(language) == globalFormats.end()) {
-                    format.parseFormatByName(language);
-                }
-                else {
-                    format = globalFormats.at(language);
-                }
-
-                CLOptions::parse(optionalArgs);
+                CLOptions::parse(args);
             }
 
             //Load JSON file
-            std::ifstream jsonFile(filePath);
+            std::ifstream jsonFile(CLOptions::filePath());
 
             if (!jsonFile.is_open()) {
-                throw std::exception(("The file \"" + filePath + "\" could not be opened").c_str());
+                throw std::exception(("The file \"" + CLOptions::filePath() + "\" could not be opened").c_str());
             }
 
             //Read file contents into a string
@@ -96,22 +74,23 @@ int main(int argc, char* argv[]) {
             CodeGenerator generator(CLOptions::indent(), className);
 
             //Write generated code to a file if no parsing error occured
-            std::string genOutput = generator.convertJson(json, format);
+            std::string genOutput = generator.convertJson(json, CLOptions::langFormat());
 
             //Write generated code to file
             auto dir = CLOptions::outputDirectory().empty() ? getWorkingDirectory() : CLOptions::outputDirectory();
-            std::wstring wsFileExtension = std::wstring(format.file_extension.begin(), format.file_extension.end());
+            std::wstring wsFileExtension = std::wstring(CLOptions::langFormat().file_extension.begin(), CLOptions::langFormat().file_extension.end());
             std::ofstream outFile(dir + outFileName + L'.' + wsFileExtension);
             outFile << genOutput;
 
             std::cout << "Code generation successfull. Saved result to: ";
-            std::wcout << dir + outFileName << wsFileExtension << "\n";
+            std::wcout << dir + outFileName << '.' << wsFileExtension << "\n";
         }
         catch (const std::exception& e)
         {
             std::cerr << "ERROR: " << e.what() << "\n";
+#ifdef NDEBUG
             continue;
-#ifndef NDEBUG
+#else
             throw e; //Debug builds will rethrow the exception
 #endif
         }

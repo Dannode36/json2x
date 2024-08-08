@@ -58,9 +58,10 @@ std::string CodeGenerator::getType(rapidjson::Value* jsonValue, std::string memb
         usingVectors = true;
         if (jsonValue->Size() > 0) {
             std::string type = format.placeholder_t;
+            classCount++;
             for (size_t i = 0; i < jsonValue->Size(); i++)
             {
-                std::string tempType = getType(&jsonValue->GetArray()[i], className + std::to_string(++classCount), depth + 1);
+                std::string tempType = getType(&jsonValue->GetArray()[i], memberName, depth + 1);
                 if (type == format.placeholder_t && tempType != format.placeholder_t) {
                     type = tempType;
                 }
@@ -111,8 +112,8 @@ std::string CodeGenerator::getType(rapidjson::Value* jsonValue, std::string memb
 /// Creates a new ObjectData by recursively searching the jsonValue's members and
 /// adds it to the structure list
 /// </summary>
-/// <param name="jsonValue">Starting node convert into an ObjectData</param>
-/// <param name="depth">Current recurse depth</param>
+/// <param nameOfMember="jsonValue">Starting node convert into an ObjectData</param>
+/// <param nameOfMember="depth">Current recurse depth</param>
 /// <returns>Name of the created or an identical ObjectData</returns>
 std::string CodeGenerator::DeserializeJsonObject(rapidjson::Value* jsonValue, std::string memberName, int depth) {
     if (depth > MAX_DEPTH) {
@@ -122,7 +123,10 @@ std::string CodeGenerator::DeserializeJsonObject(rapidjson::Value* jsonValue, st
     ObjectData sstruct;
     for (auto& member : jsonValue->GetObject())
     {
-        std::string typeString = getType(&member.value, member.name.GetString(), depth + 1);
+        std::string nameOfMember = member.name.GetString();
+        nameOfMember[0] = toupper(nameOfMember[0]); //Capatalize first letter
+
+        std::string typeString = getType(&member.value, nameOfMember, depth + 1);
 
         if (typeString == format.placeholder_t) {
             sstruct.isComplete = false;
@@ -131,7 +135,7 @@ std::string CodeGenerator::DeserializeJsonObject(rapidjson::Value* jsonValue, st
         sstruct.members.emplace_back(typeString, member.name.GetString(), member.value.IsArray());
 
         //IMPORTANT: Do not mix std::string and const char* when formatting... it took 2 hours to find this
-        //std::string memberText = fmt::format(format.var_format, typeString.c_str(), member.name.GetString());
+        //std::string memberText = fmt::format(format.var_format, typeString.c_str(), member.nameOfMember.GetString());
     }
 
     std::string hashValue;
@@ -142,7 +146,16 @@ std::string CodeGenerator::DeserializeJsonObject(rapidjson::Value* jsonValue, st
 
     auto iter = hashSet.find(hash);
     if (iter == hashSet.end()) { //ObjectData hash does not exist.
-        sstruct.name = memberName;
+
+        auto nameIter = classNameCounters.find(memberName);
+        if (nameIter != classNameCounters.end()) {
+            sstruct.name = memberName + std::to_string(++nameIter->second);
+        }
+        else
+        {
+            sstruct.name = memberName;
+            classNameCounters.insert({ memberName, 1 });
+        }
 
         structureList.push_back(std::move(sstruct));
         hashSet.insert({ hash, structureList.size() - 1});
