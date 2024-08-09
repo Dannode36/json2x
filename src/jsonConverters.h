@@ -37,7 +37,6 @@ private:
 	LangFormat format;
 	bool usingStrings;
 	bool usingVectors;
-	int classCount;
 
 	std::hash<std::string> stringHash;
 	std::unordered_map<size_t, size_t> hashSet; //ObjectData ID (hash) mapped to index in structureList

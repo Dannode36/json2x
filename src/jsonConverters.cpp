@@ -12,7 +12,6 @@
 CodeGenerator::CodeGenerator(const std::string indent, const std::string className) : indent(indent), className(className) {
     this->usingStrings = false;
     this->usingVectors = false;
-    this->classCount = 0;
     this->stringHash = std::hash<std::string>();
     this->structureList = std::vector<ObjectData>();
     this->hashSet = std::unordered_map<size_t, size_t>();
@@ -25,7 +24,6 @@ std::string CodeGenerator::convertJson(std::string& json, const LangFormat& form
     this->format = format;
     usingStrings = false;
     usingVectors = false;
-    classCount = 0;
     structureList.clear();
     hashSet.clear();
 
@@ -58,7 +56,7 @@ std::string CodeGenerator::getType(rapidjson::Value* jsonValue, std::string memb
         usingVectors = true;
         if (jsonValue->Size() > 0) {
             std::string type = format.placeholder_t;
-            classCount++;
+
             for (size_t i = 0; i < jsonValue->Size(); i++)
             {
                 std::string tempType = getType(&jsonValue->GetArray()[i], memberName, depth + 1);
@@ -76,9 +74,6 @@ std::string CodeGenerator::getType(rapidjson::Value* jsonValue, std::string memb
     else if (jsonValue->IsInt()) {
         return format.int32_t;
     }
-    else if (jsonValue->IsFloat()) {
-        return format.float_t;
-    }
     else if (jsonValue->IsUint()) {
         return format.uint32_t;
     }
@@ -88,15 +83,18 @@ std::string CodeGenerator::getType(rapidjson::Value* jsonValue, std::string memb
     else if (jsonValue->IsUint64()) {
         return format.uint64_t;
     }
+    else if (jsonValue->IsFloat()) {
+        return format.float_t;
+    }
     else if (jsonValue->IsDouble()) {
         return format.double_t;
+    }
+    else if (jsonValue->IsBool()) {
+        return format.bool_t;
     }
     else if (jsonValue->IsString()) {
         usingStrings = true;
         return format.string_t;
-    }
-    else if (jsonValue->IsBool()) {
-        return format.bool_t;
     }
 
     //Handle error
@@ -133,18 +131,15 @@ std::string CodeGenerator::DeserializeJsonObject(rapidjson::Value* jsonValue, st
         }
 
         sstruct.members.emplace_back(typeString, member.name.GetString(), member.value.IsArray());
-
-        //IMPORTANT: Do not mix std::string and const char* when formatting... it took 2 hours to find this
-        //std::string memberText = fmt::format(format.var_format, typeString.c_str(), member.nameOfMember.GetString());
     }
 
     std::string hashValue;
     for (const auto& i : sstruct.members) {
         hashValue += i.name;
     }
-    size_t hash = stringHash(hashValue);
+    size_t hashOfMemberNames = stringHash(hashValue);
 
-    auto iter = hashSet.find(hash);
+    auto iter = hashSet.find(hashOfMemberNames);
     if (iter == hashSet.end()) { //ObjectData hash does not exist.
 
         auto nameIter = classNameCounters.find(memberName);
@@ -157,8 +152,8 @@ std::string CodeGenerator::DeserializeJsonObject(rapidjson::Value* jsonValue, st
             classNameCounters.insert({ memberName, 1 });
         }
 
+        hashSet.insert({ hashOfMemberNames, structureList.size()});
         structureList.push_back(std::move(sstruct));
-        hashSet.insert({ hash, structureList.size() - 1});
 
         return memberName;
     }
@@ -234,7 +229,7 @@ std::string CodeGenerator::GenerateCode() {
         }
     }
     catch (std::exception e) {
-        throw std::exception("Invalid format string. Check { are escaped properly ({{)");
+        throw std::exception("Invalid format string. Check \"{\" are escaped properly -> \"{{\"");
     }
 
     return text;
