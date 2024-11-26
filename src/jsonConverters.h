@@ -43,6 +43,8 @@ private:
 	std::vector<ObjectData> structureList; //ObjectData ID (hash) mapped to itself
 	std::unordered_map<std::string, int> classNameCounters;
 
+	std::vector<std::string> usings;
+
 	std::string DeserializeJsonObject(rapidjson::Value* jsonValue, std::string memberName, int depth);
 	std::string getType(rapidjson::Value* jsonValue, std::string memberName, int depth);
 	std::string GenerateCode();

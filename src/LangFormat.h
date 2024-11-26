@@ -20,8 +20,7 @@ struct LangFormat
     std::string structS_format; //Start of struct declaration
     std::string structE_format; //End of struct declaration
 
-    std::string using_array;
-    std::string using_string;
+    std::map<std::string, std::string> usings;
 
     std::string file_extension;
 
@@ -32,9 +31,9 @@ struct LangFormat
 
 const std::map<std::string, LangFormat> globalFormats
 {
-    { "cpp", {      "int",      "unsigned int", "long long",    "unsigned long long",   "float",        "double",       "bool",     "std::string",  "void*",       "{0} {1};",         "std::vector<{}>",   "struct {} {{",     "};",   "#include <vector>",                    "#include <string>",    "h" } },
-    { "csharp", {   "int",      "uint",         "long",         "ulong",                "float",        "double",       "bool",     "string",       "object",      "{0} {1};",         "List<{}>",          "class {}\n{{",     "}",    "using System.Collections.Generic;",    "",                     "cs" } },
-    { "java", {     "int",      "int",          "long",         "long",                 "float",        "double",       "bool",     "String",       "Object",      "{0} {1};",         "ArrayList<{}>",     "class {}\n{{",     "}",    "",                                     "",                     "java" } },
-    { "kotlin", {   "int",      "UInt",         "long",         "ULong",                "float",        "double",       "bool",     "String",       "Object",      "val {1}: {0};",    "List<{}>",          "class {}\n{{",     "}",    "",                                     "",                     "kt" } },
-    { "rust", {     "i32",      "u32",          "i64",          "u64",                  "f32",          "f64",          "bool",     "String",       "",            "{1}: {0},",        "Vec<{}>",           "struct {}\n{{",    "}",    "",                                     "",                     "rs" } },
+    { "cpp", {      "int",      "unsigned int", "long long",    "unsigned long long",   "float",        "double",       "bool",     "std::string",  "void*",       "{0} {1};",         "std::vector<{}>",   "struct {} {{",     "};",   {{"std::string", "#include <string>"}, {"std::vector", "#include <vector>"}},   "h" } },
+    { "csharp", {   "int",      "uint",         "long",         "ulong",                "float",        "double",       "bool",     "string",       "object",      "{0} {1};",         "List<{}>",          "class {}\n{{",     "}",    {{"List", "using System.Collections.Generic;"}},                                "cs" } },
+    { "java", {     "int",      "int",          "long",         "long",                 "float",        "double",       "bool",     "String",       "Object",      "{0} {1};",         "ArrayList<{}>",     "class {}\n{{",     "}",    {},                                                                             "java" } },
+    { "kotlin", {   "int",      "UInt",         "long",         "ULong",                "float",        "double",       "bool",     "String",       "Object",      "val {1}: {0};",    "List<{}>",          "class {}\n{{",     "}",    {},                                                                             "kt" } },
+    { "rust", {     "i32",      "u32",          "i64",          "u64",                  "f32",          "f64",          "bool",     "String",       "",            "{1}: {0},",        "Vec<{}>",           "struct {}\n{{",    "}",    {},                                                                             "rs" } },
 };
