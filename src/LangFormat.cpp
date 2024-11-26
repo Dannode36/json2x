@@ -10,7 +10,7 @@ void LangFormat::parseFormatByName(std::string name)
     std::ifstream formatFile(USER_FORMATS_PATH + name + ".json");
 
     if (!formatFile.is_open()) {
-        throw std::exception(fmt::format("\"{}\" is not a supported language or could not be found in {}\n", name, USER_FORMATS_PATH).c_str());
+        throw std::exception(fmt::format("\"{}\" could not be found in {}\n", name, USER_FORMATS_PATH).c_str());
     }
 
     //Read file contents into a string

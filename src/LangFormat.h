@@ -19,13 +19,10 @@ struct LangFormat
     std::string array_format;
     std::string structS_format; //Start of struct declaration
     std::string structE_format; //End of struct declaration
-
     std::map<std::string, std::string> usings;
-
     std::string file_extension;
 
     LangFormat() = default;
-
     void parseFormatByName(std::string name);
 };
 

@@ -126,7 +126,7 @@ std::string CodeGenerator::DeserializeJsonObject(rapidjson::Value* jsonValue, st
 
         std::string typeString = getType(&member.value, nameOfMember, depth + 1);
 
-        //If type has a using, add it to an array, then remove it from the map
+        //If type has a using, add it to an array for later, then remove it from the format map
         auto itr = format.usings.lower_bound(typeString);
         if (itr != format.usings.end()) {
             usings.push_back(itr->second);
