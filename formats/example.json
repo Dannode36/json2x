@@ -12,7 +12,9 @@
   "array": "std::vector<{}>",
   "structStart": "struct {} {{",
   "structEnd": "};",
-  "usingArray": "#include <vector>",
-  "usingString": "#include <string>",
+  "usings": {
+    "std::string": "#include <string>",
+    "std::vector": "#include <vector>"
+  },
   "extension": "h"
 }

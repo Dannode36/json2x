@@ -12,7 +12,8 @@
   "array": "",
   "structStart": "",
   "structEnd": "",
-  "usingArray": "",
-  "usingString": "",
+  "usings": {
+    
+  },
   "extension": ""
 }

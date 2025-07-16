@@ -10,7 +10,7 @@ void LangFormat::parseFormatByName(std::string name)
     std::ifstream formatFile(USER_FORMATS_PATH + name + ".json");
 
     if (!formatFile.is_open()) {
-        throw std::exception(fmt::format("\"{}\" is not a supported language or could not be found in {}\n", name, USER_FORMATS_PATH).c_str());
+        throw std::exception(fmt::format("\"{}\" could not be found in {}\n", name, USER_FORMATS_PATH).c_str());
     }
 
     //Read file contents into a string
@@ -40,7 +40,10 @@ void LangFormat::parseFormatByName(std::string name)
     this->array_format = doc["array"].GetString();
     this->structS_format = doc["structStart"].GetString();
     this->structE_format = doc["structEnd"].GetString();
-    this->using_array = doc["usingArray"].GetString();
-    this->using_string = doc["usingString"].GetString();
     this->file_extension = doc["extension"].GetString();
+
+    auto usings = doc["usings"].GetObject();
+    for (auto i = usings.MemberBegin(); i != usings.MemberEnd(); i++) {
+        this->usings.insert({ i->name.GetString(), i->value.GetString() });
+    };
 }

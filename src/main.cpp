@@ -15,8 +15,6 @@ int main(int argc, char* argv[]) {
     const std::wstring outFileName = L"\\output";
     bool running = true;
 
-    std::cout << "json2x " << VERSION_MAJOR << "." << VERSION_MINOR << "\n";
-
     while (running)
     {
         try
@@ -31,7 +29,7 @@ int main(int argc, char* argv[]) {
                         throw std::exception("Correct syntax is \"json2x <file-path> <language> <options>\"\n");
                     }
 
-                    for (int i = 0; i < argc; i++) {
+                    for (int i = 1; i < argc; i++) {
                         args.push_back(argv[i]);
                     }
 
@@ -39,6 +37,9 @@ int main(int argc, char* argv[]) {
                     argc = 0; //Prevent args being used again
                 }
                 else {
+
+                    std::cout << "json2x " << VERSION_MAJOR << "." << VERSION_MINOR << " (shell mode) " << "\n";
+
                     std::cout << ">> ";
 
                     std::string tempInput;
@@ -56,7 +57,9 @@ int main(int argc, char* argv[]) {
                     }
                 }
 
-                CLOptions::parse(args);
+                if (CLOptions::parse(args) != true) {
+                    continue;
+                }
             }
 
             //Load JSON file
@@ -73,7 +76,7 @@ int main(int argc, char* argv[]) {
             //Construct a code generator object with an indent style (4 spaces) and an initial class name ("MyClass")
             CodeGenerator generator(CLOptions::indent(), className);
 
-            //Write generated code to a file if no parsing error occured
+            //Get generated code if no parsing error occured
             std::string genOutput = generator.convertJson(json, CLOptions::langFormat());
 
             //Write generated code to file

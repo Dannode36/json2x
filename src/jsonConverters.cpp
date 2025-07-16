@@ -126,6 +126,13 @@ std::string CodeGenerator::DeserializeJsonObject(rapidjson::Value* jsonValue, st
 
         std::string typeString = getType(&member.value, nameOfMember, depth + 1);
 
+        //If type has a using, add it to an array for later, then remove it from the format map
+        auto itr = format.usings.lower_bound(typeString);
+        if (itr != format.usings.end()) {
+            usings.push_back(itr->second);
+            format.usings.erase(itr->first);
+        }
+
         if (typeString == format.placeholder_t) {
             sstruct.isComplete = false;
         }
@@ -186,13 +193,12 @@ std::string CodeGenerator::DeserializeJsonObject(rapidjson::Value* jsonValue, st
 }
 
 std::string CodeGenerator::GenerateCode() {
-
     int completedClasses = 0;
     for (auto& object : structureList)
     {
         if (!object.isComplete) {
             if (CLOptions::isForcePerfection()) {
-                throw std::exception("Some objects could not be parsed to completion (-p)");
+                throw std::exception("Some objects could not be parsed to completion (-p was set)");
             }
             continue;
         }
@@ -208,9 +214,13 @@ std::string CodeGenerator::GenerateCode() {
     }
 
     std::string text;
-    text += usingVectors ? format.using_array + "\n" : "";
-    text += usingStrings ? format.using_string + "\n" : "";
-    text += usingStrings || usingVectors ? "\n" : "";
+
+    if (!usings.empty()) {
+        for (auto& u : usings) {
+            text += u + "\n";
+        }
+        text += "\n";
+    }
 
     try {
         for (auto& sstruct : structureList)
