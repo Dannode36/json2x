@@ -4,7 +4,7 @@
 #include "LangFormat.h"
 
 namespace CLOptions {
-	void parse(std::vector<std::string>& args);
+	bool parse(std::vector<std::string>& args);
 
 	std::string filePath();
 	LangFormat& langFormat();

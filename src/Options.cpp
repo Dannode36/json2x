@@ -78,9 +78,15 @@ namespace CLOptions {
 			outputDir = std::wstring(args[i].begin(), args[i].end());
 		}}}
 	};
-		
-	void parse(std::vector<std::string>& args)
+
+	//Returns: Wether the current command should continue execution. e.g. "help" will return false
+	bool parse(std::vector<std::string>& args)
 	{
+		if (args.size() > 0 && args[0] == "help") {
+			CLOptions::help();
+			return false;
+		}
+
 		if (args.size() < 2) {
 			throw std::exception("Correct syntax is \"<file-path> <language> <options>\"");
 		}
@@ -94,10 +100,6 @@ namespace CLOptions {
 				args[i] = converter.to_bytes(openFileDialog());
 			}
 		} //This might be too hard (Probably need to use IFileDialog (that shit is wack))
-
-		if (args[0] == "help") {
-			help();
-		}
 
 		//Get filepath
 		r_filePath = args[0];
@@ -132,6 +134,8 @@ namespace CLOptions {
 			//State errors
 			if (o_forcePerfection && o_forceThroughErrors) { throw std::exception("-f and -p cannot be set simultaneously"); }
 		}
+
+		return true;
 	}
 
 	std::string filePath()
@@ -166,9 +170,11 @@ namespace CLOptions {
 	}
 	void help(std::string arg)
 	{
+		fmt::print("Syntax: json2x <file-path> <language> <options>\n");
+
 		for (auto& option : commandStringToId)
 		{
-			fmt::print("  " + option.second.description + '\n');
+			fmt::print(option.second.description + '\n');
 		}
 	}
 }
