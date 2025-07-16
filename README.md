@@ -1,7 +1,7 @@
 # json2x
 Convert JSON into class definitions supporting custom language formats
 
-[Getting Started](https://github.com/Dannode36/json2x/wiki/Get-Started)
+[Getting Started](https://github.com/Dannode36/json2x/wiki/)
 
 ### Supported Languages
  - C++
