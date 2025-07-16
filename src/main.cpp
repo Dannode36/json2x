@@ -15,6 +15,10 @@ int main(int argc, char* argv[]) {
     const std::wstring outFileName = L"\\output";
     bool running = true;
 
+    if (argc <= 1) {
+        std::cout << "json2x " << VERSION_MAJOR << "." << VERSION_MINOR << " (shell mode) " << "\n";
+    }
+
     while (running)
     {
         try
@@ -37,9 +41,6 @@ int main(int argc, char* argv[]) {
                     argc = 0; //Prevent args being used again
                 }
                 else {
-
-                    std::cout << "json2x " << VERSION_MAJOR << "." << VERSION_MINOR << " (shell mode) " << "\n";
-
                     std::cout << ">> ";
 
                     std::string tempInput;
