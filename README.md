@@ -1,5 +1,5 @@
 # json2x
-Convert JSON into class definitions supporting custom language formats
+Convert JSON into class definitions with support for custom language formats
 
 [Getting Started](https://github.com/Dannode36/json2x/wiki/)
 
